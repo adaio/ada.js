@@ -14,7 +14,7 @@ var mybike = ak47({ 'color': 'white', 'nickname': 'combat aircraft', 'price': 11
     mycar = ak47({ 'color': 'blue', 'brand': 'peugeot', 'price': 20000 }),
     myhouse = ak47({ 'neighborhood': 'oakland', 'price': 1300000 });
 
-Object.keys(mybike); // id, color, nickname
+Object.keys(mybike); // color, nickname, price
 mybike.color(); // white
 
 mybike.color.subscribe(function(newValue, oldValue){ // or ak47(mybike.color, function(newValue){
