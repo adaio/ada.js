@@ -25,7 +25,7 @@ mybike.nickname('public enemy'); // public enemy
 
 var myBikeView = ak47({
     model: mybike,
-    html: 'I have a bike named {{ model.nickname }}. It's color is {{ model.color }}',
+    html: 'I have a bike named {{ model.nickname }}. Its color is {{ model.color }}',
 });
 
 var myWealthView = ak47({
