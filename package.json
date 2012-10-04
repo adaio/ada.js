@@ -1,0 +1,22 @@
+{
+  "name": "ak47",
+  "version": "0.0.1",
+  "description": "A JavaScript Library For Creating Observable Classes",
+  "author": "Azer Koculu <azer@kodfabrik.com>",
+  "keywords": [
+    "classes",
+    "observable",
+    "events"
+  ],
+  "main": "./ak47",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/azer/ak47.git"
+  },
+  "devDependencies": {
+    "highkick": "1.x"
+  },
+  "scripts": {
+    "test": "./node_modules/highkick/bin/highkick"
+  }
+}
