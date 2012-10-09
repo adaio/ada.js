@@ -11,6 +11,46 @@ var ak47 = (function(undefined){
     setTimeout(function(){ fn(); }, 0);
   };
 
+  function ak47(){
+    var args = Array.prototype.slice.call(arguments),
+        fn;
+
+    if(args.length == 1 && typeof args[0] == 'object'){
+      fn = newObject;
+    } else if( args.length == 2 && typeof args[0] == 'string' && typeof args[1] == 'object'){
+      fn = templating;
+    }
+
+    return fn.apply(undefined, arguments);
+  }
+
+  ak47.nextTick   = nextTick;
+  ak47.property   = property;
+  ak47.templating = templating;
+
+  function newObject(raw){
+    var obj = {}, key, val;
+
+    for(key in raw){
+      val = raw[key];
+      obj[key] = ( typeof val != 'function' || !val.isAK47Property ) ? property(val) : val;
+    }
+
+    return obj;
+  }
+
+  function emitUpdate(property, update, old){
+    nextTick(function(){
+      property.subscribers.forEach(function(cb){
+        if( !cb || typeof cb.fn != 'function' ) return;
+
+        nextTick(function(){
+          cb.fn.call(undefined, update, old);
+        });
+      });
+    });
+  }
+
   function property(rawValue, getter, setter){
     var value = undefined;
 
@@ -34,28 +74,39 @@ var ak47 = (function(undefined){
       return value;
     }
 
-    function set(update){
-      value = setter ? setter(update, value, document) : update;
-      // document.id && document.id.schema.publish.withoutUpdate(document, fieldName);
+    function set(update, notEmit){
+      !notEmit && emitUpdate(proxy, update, value);
+      value = setter ? setter(update, value) : update;
+      return value;
     }
 
+    proxy.isAK47Property = true;
     proxy.raw = raw;
+    proxy.subscribers = [];
+    proxy.subscribe = subscribe.bind(undefined, proxy);
+    proxy.unsubscribe = unsubscribe.bind(undefined, proxy);
 
-    set(rawValue);
+    set(rawValue, true);
 
     return proxy;
   }
 
-  /*
-   * Below function is stolen from: https://gist.github.com/1347239
-   */
-  function templating(a,b) {
-    return(a+'').replace(/\{\{([^{}]+)}}/g, function(c,d) {
-      return d in (b||{}) ? (/^f/.test(typeof b[d]) ? b[d]() :b[d] ) : c;
+  function subscribe(property, callback){
+    property.subscribers.push({ fn: callback });
+  }
+
+  function unsubscribe(property, callback){
+    var callbacks = property.subscribers;
+    callbacks[ callbacks.indexOf(callback) ] = undefined;
+  }
+
+  function templating(template, vars) {
+    return (template+'').replace(/\{\{([^{}]+)}}/g, function(tag, name) {
+      return name in (vars || {}) ? (typeof vars[name] == 'function' ? vars[name]() : vars[name] ) : tag;
     });
   };
 
-  return exports;
+  return ak47;
 
 }());
 
