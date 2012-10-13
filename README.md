@@ -1,27 +1,36 @@
-Ak47 is a JavaScript library for creating objects that can interact with eachother.
+Ak47 is a tiny JavaScript library for defining observable properties and objects that can interact with eachother.
 
-# Install
+# INSTALL
 
 ```bash
 npm install ak47
 ```
 
-# Usage Example
+# USAGE
+
+## Observable Properties
+
+```javascript
+
+var foo = ak47({ 'bar': 3.14 });
+
+foo.bar(); // 3.14
+foo.bar(3.14159); // 3.14159
+
+foo.bar.subscribe(function(new, old){
+  console.log(new, old); // puts whatever Math.PI is and 3.14159
+});
+
+foo.bar(Math.PI);
+```
+
+## Objects Interacting with Eachother
 
 ```javascript
 
 var mybike = ak47({ 'color': 'white', 'nickname': 'combat aircraft', 'price': 1100 }),
     mycar = ak47({ 'color': 'blue', 'brand': 'peugeot', 'price': 20000 }),
     myhouse = ak47({ 'neighborhood': 'oakland', 'price': 1300000 });
-
-Object.keys(mybike); // color, nickname, price
-mybike.color(); // white
-
-mybike.color.subscribe(function(newValue, oldValue){ // or ak47(mybike.color, function(newValue){
-    console.log(oldValue, newValue); // combat aircraft, public enemy
-});
-
-mybike.nickname('public enemy'); // public enemy
 
 var myBikeView = ak47({
     model: mybike,
@@ -30,8 +39,8 @@ var myBikeView = ak47({
 
 var myWealthView = ak47({
     mybike: myBikeView,
-    total: ak47(mycar.price, myhouse.price, function(self, myCarPrice, myHousePrice){
-        return self.model.price() + myCarPrice + myHousePrice;
+    total: ak47(myBikeView.model.price, mycar.price, myhouse.price, function(myBikePrice, myCarPrice, myHousePrice){
+        return myBikePrice + myCarPrice + myHousePrice;
     }),
     html: 'My Wealth: {{ mybike }} . My total wealth is ${{ total }}'
 });
