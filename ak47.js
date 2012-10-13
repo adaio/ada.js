@@ -1,12 +1,5 @@
 var ak47 = (function(undefined){
 
-  var exports = {
-    // 'pubsub': pubsub,
-    'nextTick': nextTick,
-    'property': property,
-    'templating': templating
-  };
-
   var nextTick = typeof process != 'undefined' && process.nextTick || function(fn){
     setTimeout(function(){ fn(); }, 0);
   };
@@ -25,36 +18,81 @@ var ak47 = (function(undefined){
   }
 
   ak47.nextTick   = nextTick;
+  ak47.pubsub     = pubsub;
   ak47.property   = property;
   ak47.templating = templating;
 
-  function newObject(raw){
+  /**
+   * Clone given object by converting its content to ak47 properties.
+   * Pass property names in "exceptions" to move properties without converting.
+   *
+   * @param {Object} raw
+   * @param {Array} exceptions (optional)
+   * @return {Object}
+   */
+  function newObject(raw, exceptions){
     var obj = {}, key, val;
 
     for(key in raw){
       val = raw[key];
-      obj[key] = ( typeof val != 'function' || !val.isAK47Property ) ? property(val) : val;
+      obj[key] = ( !Array.isArray(exceptions) || ! key in exceptions )
+        && ( typeof val != 'function' || !val.isAK47Property )
+        ? property(val)
+        : val;
     }
 
     return obj;
   }
 
-  function emitUpdate(property, update, old){
+  /**
+   * Publish "from" by applying given args
+   *
+   * @param {Pubsub} from
+   * @param {...Any} args
+   */
+  function publish(from){
+    var args = Array.prototype.slice.call(arguments, 1);
+
     nextTick(function(){
-      property.subscribers.forEach(function(cb){
+      from.subscribers.forEach(function(cb){
         if( !cb || typeof cb.fn != 'function' ) return;
 
         nextTick(function(){
-          cb.fn.call(undefined, update, old);
+          cb.fn.apply(undefined, args);
         });
       });
     });
   }
 
-  function publish(property){
-    emitUpdate(property, property());
+  /**
+   * Create a new pub/sub controller
+   *
+   * @return {Function}
+   */
+  function pubsub(){
+    var sub   = subscribe.bind(undefined, proxy),
+        unsub = unsubscribe.bind(undefined, proxy),
+        pub   = publish.bind(undefined, proxy);
+
+    function proxy(){
+      return sub.apply(undefined, arguments);
+    }
+
+    proxy.subscribers = [];
+    proxy.subscribe   = sub;
+    proxy.unsubscribe = unsub;
+    proxy.publish     = pub;
+
+    return proxy;
   }
 
+  /**
+   * Create and return a new property.
+   *
+   * @param {Anything} rawValue
+   * @param {Function} getter (optional)
+   * @param {Function} setter (optional)
+   */
   function property(rawValue, getter, setter){
     var value = undefined;
 
@@ -83,32 +121,55 @@ var ak47 = (function(undefined){
 
       value = setter ? setter(update, value) : update;
 
-      !noEmit && emitUpdate(proxy, get(), old);
+      !noEmit && publish(proxy, get(), old);
 
       return value;
     }
 
     proxy.isAK47Property = true;
-    proxy.publish = publish.bind(undefined, proxy);
-    proxy.raw = raw;
-    proxy.subscribers = [];
-    proxy.subscribe = subscribe.bind(undefined, proxy);
-    proxy.unsubscribe = unsubscribe.bind(undefined, proxy);
+    proxy.raw            = raw;
+    proxy.subscribers    = [];
+    proxy.subscribe      = subscribe.bind(undefined, proxy);
+    proxy.unsubscribe    = unsubscribe.bind(undefined, proxy);
+
+    proxy.publish = function publishProperty(){
+      var args = [proxy, get()].concat(Array.prototype.slice.call(arguments));
+      return publish.apply(undefined, args);
+    };
 
     set(rawValue, true);
 
     return proxy;
   }
 
-  function subscribe(property, callback){
-    property.subscribers.push({ fn: callback });
+  /**
+   * Subscribe callback to given pubsub object.
+   *
+   * @param {Pubsub} to
+   * @param {Function} callback
+   */
+  function subscribe(to, callback){
+    to.subscribers.push({ fn: callback });
   }
 
-  function unsubscribe(property, callback){
-    var callbacks = property.subscribers;
+  /**
+   * Unsubscribe callback to given pubsub object.
+   *
+   * @param {Pubsub} to
+   * @param {Function} callback
+   */
+  function unsubscribe(to, callback){
+    var callbacks = to.subscribers;
     callbacks[ callbacks.indexOf(callback) ] = undefined;
   }
 
+  /**
+   * A tiny templating implementation.
+   *
+   * @param {String} template
+   * @param {Object} vars
+   * @return {String}
+   */
   function templating(template, vars) {
     return (template+'').replace(/\{\{([^{}]+)}}/g, function(tag, name) {
       return name in (vars || {}) ? (typeof vars[name] == 'function' ? vars[name]() : vars[name] ) : tag;

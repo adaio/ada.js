@@ -2,53 +2,53 @@ var highkick = require('highkick'),
     ak47     = require('../'),
     assert   = require('assert');
 
-var mybike = ak47({
-  'color'    : 'white',
-  'nickname' : 'combat aircraft',
-  'price'    : ak47.property(1100, function(price){
-    return price * 10;
-  })
-});
+exports.testSubscribe = function(_done){
 
-exports.testBasic = function(_done){
+  var onfoo = ak47.pubsub(),
+      ab = [[3,1], [4, 1]],
+      x = 0,
+      y = 0;
 
   function done(){
-    c == 2 && p == 2 && _done();
+    x == 4 && y == 2 && _done();
   }
 
-  var colorUpdates = [], c = 0, priceUpdates = [], p = 0;
+  onfoo(function(a, b){
+    assert.equal(a, ab[y][0]);
+    assert.equal(b, ab[y][1]);
 
-  mybike.color.subscribe(function(update, old){
-    colorUpdates.push([update, old]);
-  });
-
-  mybike.color.subscribe(function(update, old){
-    c++;
-
-    colorUpdates.push([update, old]);
-
-    c == 2 && assert.deepEqual(colorUpdates, [['red', 'white'], ['red', 'white'], ['red', undefined], ['red', undefined]]);
+    x++;
 
     done();
   });
 
-  mybike.price.subscribe(function(update, old){
-    priceUpdates.push([update, old]);
-  });
+  onfoo.subscribe(function(a, b){
+    assert.equal(a, ab[y][0]);
+    assert.equal(b, ab[y][1]);
 
-  mybike.price.subscribe(function(update, old){
-    p++;
-
-    priceUpdates.push([update, old]);
-    p == 2 && assert.deepEqual(priceUpdates, [[100, 11000], [100, 11000], [100, undefined], [100, undefined]]);
+    x++;
+    y++;
 
     done();
   });
 
-  mybike.color('red');
-  mybike.price(10);
+  onfoo.publish(3, 1);
+  onfoo.publish(4, 1);
+};
 
-  mybike.color.publish();
-  mybike.price.publish();
+exports.testUnsubscribe = function(done){
+  var onfoo = ak47.pubsub(), failed = false;
 
+  function cb(){
+    done(new Error('unsubscribed callback has been called'));
+    failed = true;
+  }
+
+  onfoo(function(){
+    if(failed) return;
+
+    done();
+  });
+
+  onfoo.publish();
 };
