@@ -51,6 +51,10 @@ var ak47 = (function(undefined){
     });
   }
 
+  function publish(property){
+    emitUpdate(property, property());
+  }
+
   function property(rawValue, getter, setter){
     var value = undefined;
 
@@ -74,13 +78,18 @@ var ak47 = (function(undefined){
       return value;
     }
 
-    function set(update, notEmit){
-      !notEmit && emitUpdate(proxy, update, value);
+    function set(update, noEmit){
+      var old = !noEmit ? get() : undefined;
+
       value = setter ? setter(update, value) : update;
+
+      !noEmit && emitUpdate(proxy, get(), old);
+
       return value;
     }
 
     proxy.isAK47Property = true;
+    proxy.publish = publish.bind(undefined, proxy);
     proxy.raw = raw;
     proxy.subscribers = [];
     proxy.subscribe = subscribe.bind(undefined, proxy);

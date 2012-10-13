@@ -5,46 +5,50 @@ var highkick = require('highkick'),
 var mybike = ak47({
   'color'    : 'white',
   'nickname' : 'combat aircraft',
-  'price'    : 1100
+  'price'    : ak47.property(1100, function(price){
+    return price * 10;
+  })
 });
 
-exports.testBasic = function(done){
+exports.testBasic = function(_done){
+
+  function done(){
+    c == 2 && p == 2 && _done();
+  }
 
   var colorUpdates = [], c = 0, priceUpdates = [], p = 0;
 
   mybike.color.subscribe(function(update, old){
-    c++;
-    assert.equal( c,  1 );
     colorUpdates.push([update, old]);
   });
 
   mybike.color.subscribe(function(update, old){
     c++;
-    assert.equal( c, 2 );
+
     colorUpdates.push([update, old]);
 
-    assert.deepEqual(colorUpdates, [['red', 'white'], ['red', 'white']]);
+    c == 2 && assert.deepEqual(colorUpdates, [['red', 'white'], ['red', 'white'], ['red', undefined], ['red', undefined]]);
 
-    p == 2 && done();
+    done();
   });
 
   mybike.price.subscribe(function(update, old){
-    p++;
-    assert.equal( p, 1 );
     priceUpdates.push([update, old]);
   });
 
   mybike.price.subscribe(function(update, old){
     p++;
-    assert.equal( p, 2 );
+
     priceUpdates.push([update, old]);
+    p == 2 && assert.deepEqual(priceUpdates, [[100, 11000], [100, 11000], [100, undefined], [100, undefined]]);
 
-    assert.deepEqual(priceUpdates, [[10, 1100], [10, 1100]]);
-
-    c == 2 && done();
+    done();
   });
 
   mybike.color('red');
   mybike.price(10);
+
+  mybike.color.publish();
+  mybike.price.publish();
 
 };
