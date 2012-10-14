@@ -17,8 +17,8 @@ var foo = ak47({ 'bar': 3.14 });
 foo.bar(); // 3.14
 foo.bar(3.14159); // 3.14159
 
-foo.bar.subscribe(function(new, old){
-  console.log(new, old); // puts whatever Math.PI is and 3.14159
+foo.bar.subscribe(function(update, old){ // or ak47(foo.bar, function(update){
+  console.log(update, old); // puts whatever Math.PI is and 3.14159
 });
 
 foo.bar(Math.PI);
