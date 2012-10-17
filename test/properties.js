@@ -111,3 +111,32 @@ exports.testPubsub = function(_done){
   mybike.price.publish();
 
 };
+
+exports.testSubscribeViaProxy = function(done){
+
+  var mybike = ak47(combat()),
+      values = [['red', 2000, 'foo'], ['blue', undefined, 'quux']],
+      y = 0;
+
+  ak47(mybike.color, mybike.price, mybike.nickname, function(color, price, name){
+
+    assert.equal(color, values[y][0]);
+    assert.equal(price, values[y][1]);
+    assert.equal(name, values[y][2]);
+
+    y++;
+
+    if(y==2) done();
+  });
+
+
+  mybike.nickname('foo');
+  mybike.price(2000);
+  mybike.color('red');
+
+  setTimeout(function(){
+    mybike.nickname('quux');
+    mybike.color('blue');
+  }, 100);
+
+};

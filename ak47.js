@@ -12,6 +12,8 @@ var ak47 = (function(undefined){
       fn = newObject;
     } else if( args.length == 2 && typeof args[0] == 'string' && typeof args[1] == 'object'){
       fn = templating;
+    } else if(args.length > 1 && args.slice(0, args.length - 1).every(isProperty)){
+      fn = subscribeAll;
     }
 
     return fn.apply(undefined, arguments);
@@ -21,6 +23,16 @@ var ak47 = (function(undefined){
   ak47.pubsub     = pubsub;
   ak47.property   = property;
   ak47.templating = templating;
+
+  /**
+   * Determine if given object is an ak47 propert
+   *
+   * @param {Any} el
+   * @return {Boolean}
+   */
+  function isProperty(el){
+    return el && el.isAK47Property;
+  }
 
   /**
    * Clone given object by converting its content to ak47 properties.
@@ -57,26 +69,47 @@ var ak47 = (function(undefined){
       from.subscribers.forEach(function(cb){
         if( !cb || typeof cb.fn != 'function' ) return;
 
+        var allArgs = args;
+
+        if( cb.updateOnly ){
+          cb.harvest[cb.column] = allArgs[0];
+          cb.harvest.counter++;
+
+          if(cb.harvest.call != undefined){
+            clearTimeout(cb.harvest.call);
+            cb.call = undefined;
+          }
+
+          cb.harvest.call = setTimeout(function(){
+            allArgs = cb.harvest.splice(0);
+
+            cb.fn.apply(undefined, allArgs);
+          }, 0);
+
+          return;
+        }
+
         nextTick(function(){
-          cb.fn.apply(undefined, args);
+          cb.fn.apply(undefined, allArgs);
         });
       });
     });
   }
 
   /**
-   * Create a new pub/sub controller
+   * Create a new pub/sub channel
    *
+   * @param {Any} customProxy (optional)
    * @return {Function}
    */
-  function pubsub(){
+  function pubsub(customProxy){
+    var proxy = customProxy || function proxy(){
+      return sub.apply(undefined, arguments);
+    };
+
     var sub   = subscribe.bind(undefined, proxy),
         unsub = unsubscribe.bind(undefined, proxy),
         pub   = publish.bind(undefined, proxy);
-
-    function proxy(){
-      return sub.apply(undefined, arguments);
-    }
 
     proxy.subscribers = [];
     proxy.subscribe   = sub;
@@ -126,11 +159,10 @@ var ak47 = (function(undefined){
       return value;
     }
 
+    pubsub(proxy);
+
     proxy.isAK47Property = true;
     proxy.raw            = raw;
-    proxy.subscribers    = [];
-    proxy.subscribe      = subscribe.bind(undefined, proxy);
-    proxy.unsubscribe    = unsubscribe.bind(undefined, proxy);
 
     proxy.publish = function publishProperty(){
       var args = [proxy, get()].concat(Array.prototype.slice.call(arguments));
@@ -149,8 +181,27 @@ var ak47 = (function(undefined){
    * @param {Function} callback
    */
   function subscribe(to, callback){
-    to.subscribers.push({ fn: callback });
+    to.subscribers.push(typeof callback == 'function' ? { fn: callback } : callback);
   }
+
+  /**
+   * Subscribe callback to all given properties
+   *
+   * @param {...Property} to
+   * @param {Function} callback
+   */
+  function subscribeAll(){
+    var to      = Array.prototype.slice.call(arguments, 0, arguments.length - 1),
+        harvest = [],
+        cb      = arguments[arguments.length - 1];
+
+    harvest.counter = 0;
+    harvest.expected   = to.length;
+
+    to.forEach(function(property, column){
+      property.subscribe({ fn: cb, updateOnly: true, harvest: harvest, column: column });
+    });
+  };
 
   /**
    * Unsubscribe callback to given pubsub object.
