@@ -24,8 +24,6 @@ foo.bar.subscribe(function(update, old){ // or ak47(foo.bar, function(update){
 foo.bar(Math.PI);
 ```
 
-## Observable Objects
-
 ```javascript
 var bike = ak47({ model: 'giant', price: 1000 }),
     car  = ak47({ model: 'peugeot', price: 10000 }),
@@ -80,7 +78,30 @@ foo.publish(3, 1, 4);
 ## Observing Arrays
 
 ```js
+var fibs = ak47([0, 1, 1, 2, 3, 5]);
 
+console.log(fibs); // puts [0, 1, 1, 2, 3, 5]
+
+fibs.subscribe(function(a, b){
+  console.log(a, b); // puts "publishing", "manually"
+});
+
+fibs.publish('publishing', 'manually');
+
+```
+
+## Observing Other Data Tyeps
+
+```js
+
+var pi = ak47(3.14);
+
+pi.subscribe(function(update, old){
+  console.log(update, old); // puts 3.14156, 3.14
+});
+
+pi(3.14156);
+```
 
 Testing
 =======
