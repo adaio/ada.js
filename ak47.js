@@ -8,32 +8,32 @@ var ak47 = (function(undefined){
     var args = Array.prototype.slice.call(arguments),
         fn;
 
-    if(args.length == 1 && typeof args[0] == 'object'){
+    if(args.length == 1 && typeof args[0] == 'object' && !Array.isArray(args[0])){
       fn = newObject;
-    } else if( args.length == 2 && typeof args[0] == 'string' && typeof args[1] == 'object'){
-      fn = templating;
-    } else if(args.length > 1 && args.slice(0, args.length - 1).every(isProperty)){
+    } else if(args.length > 1 && args.slice(0, args.length - 1).every(isObservable)){
       fn = subscribeAll;
+    } else if(args.length == 1 && typeof args[0] == 'object') {
+      fn = pubsub;
     } else {
-      throw new Error('Couldn\'t recognize the given parameter pattern; ' + args);
+      fn = property;
+      args = args.slice(0, 1);
     };
 
-    return fn.apply(undefined, arguments);
+    return fn.apply(undefined, args);
   }
 
   ak47.nextTick   = nextTick;
   ak47.pubsub     = pubsub;
   ak47.property   = property;
-  ak47.templating = templating;
 
   /**
-   * Determine if given object is an ak47 propert
+   * Determine if given parameter is observable
    *
    * @param {Any} el
    * @return {Boolean}
    */
-  function isProperty(el){
-    return el && el.isAK47Property;
+  function isObservable(el){
+    return el && el.extendsAk47Pubsub;
   }
 
   /**
@@ -116,10 +116,11 @@ var ak47 = (function(undefined){
         unsub = unsubscribe.bind(undefined, proxy),
         pub   = publish.bind(undefined, proxy);
 
-    proxy.subscribers = [];
-    proxy.subscribe   = sub;
-    proxy.unsubscribe = unsub;
-    proxy.publish     = pub;
+    proxy.subscribers       = [];
+    proxy.subscribe         = sub;
+    proxy.unsubscribe       = unsub;
+    proxy.publish           = pub;
+    proxy.extendsAk47Pubsub = true;
 
     return proxy;
   }
@@ -201,7 +202,7 @@ var ak47 = (function(undefined){
         cb      = arguments[arguments.length - 1];
 
     to.forEach(function(property, column){
-      harvest[column] = property();
+      harvest[column] = typeof property == 'function' ? property() : property;
       property.subscribe({ fn: cb, property: proxy, ak47Subscriber: true, harvest: harvest, column: column });
     });
 
@@ -226,19 +227,6 @@ var ak47 = (function(undefined){
     var callbacks = to.subscribers;
     callbacks[ callbacks.indexOf(callback) ] = undefined;
   }
-
-  /**
-   * A tiny templating implementation.
-   *
-   * @param {String} template
-   * @param {Object} vars
-   * @return {String}
-   */
-  function templating(template, vars) {
-    return (template+'').replace(/\{\{([^{}]+)}}/g, function(tag, name) {
-      return name in (vars || {}) ? (typeof vars[name] == 'function' ? vars[name]() : vars[name] ) : tag;
-    });
-  };
 
   return ak47;
 

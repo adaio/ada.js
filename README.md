@@ -6,7 +6,7 @@ Ak47 is a tiny JavaScript library for defining observable properties and objects
 npm install ak47
 ```
 
-# USAGE
+# USAGE EXAMPLES
 
 ## Observable Properties
 
@@ -24,35 +24,63 @@ foo.bar.subscribe(function(update, old){ // or ak47(foo.bar, function(update){
 foo.bar(Math.PI);
 ```
 
-## Objects Interacting with Eachother
+## Observable Objects
 
 ```javascript
+var bike = ak47({ model: 'giant', price: 1000 }),
+    car  = ak47({ model: 'peugeot', price: 10000 }),
+    total: ak47(bike.price, car.price, function(bikePrice, carPrice){
+        return bikePrice + carPrice;
+    });
 
-var mybike = ak47({ 'color': 'white', 'nickname': 'combat aircraft', 'price': 1100 }),
-    mycar = ak47({ 'color': 'blue', 'brand': 'peugeot', 'price': 20000 }),
-    myhouse = ak47({ 'neighborhood': 'oakland', 'price': 1300000 });
+console.log(total()); // puts 11000
 
-var myBikeView = ak47({
-    model: mybike,
-    html: 'I have a bike named {{ model.nickname }}. Its color is {{ model.color }}',
+total.subscribe(function(newTotalPrice, oldTotalPrice){
+    console.log(totalPrice, ); // puts 15000, 11000
+    console.log(total()); // puts 15000.
 });
 
-var myWealthView = ak47({
-    mybike: myBikeView,
-    total: ak47(myBikeView.model.price, mycar.price, myhouse.price, function(myBikePrice, myCarPrice, myHousePrice){
-        return myBikePrice + myCarPrice + myHousePrice;
-    }),
-    html: 'My Wealth: {{ mybike }} . My total wealth is ${{ total }}'
-});
-
-myWealthView.total.subscribe(function(total){
-    console.log(total); // 2321100
-}):
-
-myTotalWealth.total(); // 1321100
-
-myhouse.price(2300000);
+bike.price(5000);
 ```
+
+## Getters and Setters
+
+```javascript
+function getter(str){
+    return str.toUpperCase();
+}
+
+function setter(newValue, oldValue){
+    return '~' + newValue;
+}
+
+var color = ak47.property('white', getter, setter);
+
+console.log( color() ); // puts "~WHITE"
+
+color('red');
+
+console.log( color() ); // puts "~RED"
+
+console.log( color.raw() ): // puts "red"
+```
+
+## PubSub
+
+```js
+var foo = pubsub({});
+
+foo.subscribe(function(a, b, c){
+    console.log(a, b, c); // puts 3, 1, 4
+});
+
+foo.publish(3, 1, 4);
+```
+
+## Observing Arrays
+
+```js
+
 
 Testing
 =======

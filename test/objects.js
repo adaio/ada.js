@@ -91,3 +91,36 @@ exports.testHarvestChaining = function(done){
   }, 100);
 
 };
+
+exports.testObservingCustomPubSubs = function(done){
+  var number = ak47(3.14),
+      string = ak47('foo'),
+      array  = ak47([3.14, 156]),
+      bool = ak47(false);
+
+  assert.equal(number(), 3.14);
+  assert.equal(string(), 'foo');
+  assert.deepEqual(array.length, 2);
+  assert.deepEqual(array[0], 3.14);
+  assert.deepEqual(array[1], 156);
+  assert.equal(bool(), false);
+
+  ak47(number, string, array, bool, function(a, b, c, d){
+    assert.equal(a, 156);
+    assert.equal(b, 'bar');
+    assert.deepEqual(c.length, 2);
+    assert.deepEqual(c[0], 3.14);
+    assert.deepEqual(c[1], 0);
+    assert.equal(d, true);
+
+    done();
+  });
+
+  number(156);
+  string('bar');
+
+  array[1] = 0;
+  array.publish(array);
+
+  bool(true);
+};
