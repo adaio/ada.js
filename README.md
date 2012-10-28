@@ -66,7 +66,7 @@ console.log( color.raw() ): // puts "red"
 ## PubSub
 
 ```js
-var foo = pubsub({});
+var foo = ak47.pubsub({});
 
 foo.subscribe(function(a, b, c){
     console.log(a, b, c); // puts 3, 1, 4
