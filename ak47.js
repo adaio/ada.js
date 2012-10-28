@@ -8,11 +8,11 @@ var ak47 = (function(undefined){
     var args = Array.prototype.slice.call(arguments),
         fn;
 
-    if(args.length == 1 && typeof args[0] == 'object' && !Array.isArray(args[0])){
+    if(args.length == 1 && typeof args[0] == 'object' && args[0].constructor == Object){
       fn = newObject;
     } else if(args.length > 1 && args.slice(0, args.length - 1).every(isObservable)){
       fn = subscribeAll;
-    } else if(args.length == 1 && typeof args[0] == 'object') {
+    } else if(args.length == 1 && Array.isArray(args[0])) {
       fn = pubsub;
     } else {
       fn = property;

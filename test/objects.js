@@ -124,3 +124,22 @@ exports.testObservingCustomPubSubs = function(done){
 
   bool(true);
 };
+
+exports.testDateObjects = function(done){
+
+  var now = new Date, 
+      date = ak47(now);
+
+  assert.equal(date(), now);
+
+  date.subscribe(function(update){
+    assert.equal(update, now);
+    done();
+  });
+
+  setTimeout(function(){
+
+    date(now = new Date);
+
+  }, 100);
+};
