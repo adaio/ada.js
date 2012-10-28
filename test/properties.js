@@ -10,7 +10,6 @@ function combat(){
   };
 }
 
-
 exports.testBasic = function(done){
 
   var mybike = ak47(combat());
@@ -25,6 +24,25 @@ exports.testBasic = function(done){
   assert.equal(mybike.price(), 2500);
 
   done();
+};
+
+exports.testMethods = function(done){
+
+
+  var bike = combat();
+  bike.foo = pi;
+
+  bike = ak47(bike);
+
+  assert.equal(bike.foo, pi);
+  assert.equal(bike.foo(), pi());
+
+  done();
+
+  function pi(){
+    return 3.14;
+  };
+
 };
 
 exports.testGetterSetter = function(done){
@@ -115,10 +133,10 @@ exports.testPubsub = function(_done){
 exports.testSubscribeViaProxy = function(done){
 
   var mybike = ak47(combat()),
-      values = [['red', 2000, 'foo'], ['blue', undefined, 'quux']],
+      values = [['red', 2000, 'foo'], ['blue', 2000, 'quux']],
       y = 0;
 
-  ak47(mybike.color, mybike.price, mybike.nickname, function(color, price, name){
+  function observer(color, price, name){
 
     assert.equal(color, values[y][0]);
     assert.equal(price, values[y][1]);
@@ -127,8 +145,9 @@ exports.testSubscribeViaProxy = function(done){
     y++;
 
     if(y==2) done();
-  });
+  }
 
+  var prop = ak47(mybike.color, mybike.price, mybike.nickname, observer);
 
   mybike.nickname('foo');
   mybike.price(2000);

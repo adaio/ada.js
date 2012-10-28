@@ -14,7 +14,9 @@ var ak47 = (function(undefined){
       fn = templating;
     } else if(args.length > 1 && args.slice(0, args.length - 1).every(isProperty)){
       fn = subscribeAll;
-    }
+    } else {
+      throw new Error('Couldn\'t recognize the given parameter pattern; ' + args);
+    };
 
     return fn.apply(undefined, arguments);
   }
@@ -48,7 +50,8 @@ var ak47 = (function(undefined){
     for(key in raw){
       val = raw[key];
       obj[key] = ( !Array.isArray(exceptions) || ! key in exceptions )
-        && ( typeof val != 'function' || !val.isAK47Property )
+        && ( typeof val != 'object' )
+        && ( typeof val != 'function' )
         ? property(val)
         : val;
     }
@@ -69,11 +72,10 @@ var ak47 = (function(undefined){
       from.subscribers.forEach(function(cb){
         if( !cb || typeof cb.fn != 'function' ) return;
 
-        var allArgs = args;
+        var allArgs  = args;
 
-        if( cb.updateOnly ){
+        if( cb.ak47Subscriber ){
           cb.harvest[cb.column] = allArgs[0];
-          cb.harvest.counter++;
 
           if(cb.harvest.call != undefined){
             clearTimeout(cb.harvest.call);
@@ -81,9 +83,12 @@ var ak47 = (function(undefined){
           }
 
           cb.harvest.call = setTimeout(function(){
-            allArgs = cb.harvest.splice(0);
+            cb.harvest.call = undefined;
 
-            cb.fn.apply(undefined, allArgs);
+            var oldValue = cb.harvest.value;
+            cb.harvest.value = cb.fn.apply(undefined, cb.harvest),
+
+            cb.property.publish(cb.harvest.value, oldValue);
           }, 0);
 
           return;
@@ -195,12 +200,20 @@ var ak47 = (function(undefined){
         harvest = [],
         cb      = arguments[arguments.length - 1];
 
-    harvest.counter = 0;
-    harvest.expected   = to.length;
-
     to.forEach(function(property, column){
-      property.subscribe({ fn: cb, updateOnly: true, harvest: harvest, column: column });
+      harvest[column] = property();
+      property.subscribe({ fn: cb, property: proxy, ak47Subscriber: true, harvest: harvest, column: column });
     });
+
+    function proxy(){
+      return cb.apply(this, harvest);
+    };
+
+    pubsub(proxy);
+    proxy.isAK47Property = true;
+    proxy.raw            = proxy;
+
+    return proxy;
   };
 
   /**
