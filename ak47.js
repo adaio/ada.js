@@ -50,7 +50,7 @@ var ak47 = (function(undefined){
     for(key in raw){
       val = raw[key];
       obj[key] = ( !Array.isArray(exceptions) || ! key in exceptions )
-        && ( typeof val != 'object' )
+        && ( typeof val != 'object' || val.constructor != Object )
         && ( typeof val != 'function' )
         ? property(val)
         : val;

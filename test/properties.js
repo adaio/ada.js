@@ -159,3 +159,16 @@ exports.testSubscribeViaProxy = function(done){
   }, 100);
 
 };
+
+exports.testDate = function(done){
+  var mybike = combat(),
+      date = new Date;
+
+  mybike.date = date;
+
+  mybike = ak47(mybike);
+
+  assert.equal(mybike.date(), date);
+
+  done();
+}
