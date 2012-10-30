@@ -8,9 +8,21 @@ npm install ak47
 
 # USAGE EXAMPLES
 
+The simpliest use case is:
+
+```js
+> var greeting = ak47('Hello World');
+> greeting.subscribe(console.log);
+> greeting()
+"Hello World"
+> greeting("what's up?")
+"what's up?"
+> "what's up?", "Hello World" // see 2nd line
+```
+
 ## Observable Properties
 
-```javascript
+```js
 
 var foo = ak47({ 'bar': 3.14 });
 
