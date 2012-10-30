@@ -109,3 +109,8 @@ Testing
 ```
 npm test
 ```
+
+License
+=======
+
+WTFPL
