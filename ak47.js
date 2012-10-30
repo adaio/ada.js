@@ -66,16 +66,17 @@ var ak47 = (function(undefined){
    * @param {...Any} args
    */
   function publish(from){
+    if(from && from.subscribers && from.subscribers.length == 0) return;
+
     var args = Array.prototype.slice.call(arguments, 1);
 
     nextTick(function(){
-      from.subscribers.forEach(function(cb){
+
+      from.subscribers.forEach(function(cb, i){
         if( !cb || typeof cb.fn != 'function' ) return;
 
-        var allArgs  = args;
-
         if( cb.ak47Subscriber ){
-          cb.harvest[cb.column] = allArgs[0];
+          cb.harvest[cb.column] = args[0];
 
           if(cb.harvest.call != undefined){
             clearTimeout(cb.harvest.call);
@@ -95,7 +96,7 @@ var ak47 = (function(undefined){
         }
 
         nextTick(function(){
-          cb.fn.apply(undefined, allArgs);
+          cb.fn.apply(undefined, args);
         });
       });
     });
@@ -112,9 +113,19 @@ var ak47 = (function(undefined){
       return sub.apply(undefined, arguments);
     };
 
-    var sub   = subscribe.bind(undefined, proxy),
-        unsub = unsubscribe.bind(undefined, proxy),
-        pub   = publish.bind(undefined, proxy);
+    function sub(callback){
+      subscribe(proxy, callback);
+    }
+
+    function unsub(callback){
+      unsubscribe(proxy, callback);
+    }
+
+    function pub(){
+      var args = [proxy];
+      Array.prototype.push.apply(args, arguments);
+      publish.apply(undefined, args);
+    }
 
     proxy.subscribers       = [];
     proxy.subscribe         = sub;
@@ -201,10 +212,13 @@ var ak47 = (function(undefined){
         harvest = [],
         cb      = arguments[arguments.length - 1];
 
-    to.forEach(function(property, column){
-      harvest[column] = typeof property == 'function' ? property() : property;
-      property.subscribe({ fn: cb, property: proxy, ak47Subscriber: true, harvest: harvest, column: column });
-    });
+
+    var i = -1, property;
+    while( ++i < to.length ){
+      property = to[i];
+      harvest[i] = typeof property == 'function' ? property() : property;
+      property.subscribe({ fn: cb, property: proxy, ak47Subscriber: true, harvest: harvest, column: i });
+    }
 
     function proxy(){
       return cb.apply(this, harvest);
