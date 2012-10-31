@@ -3,7 +3,7 @@ Ak47 is a tiny JavaScript library for defining observable properties and objects
 # INSTALL
 
 ```bash
-npm install ak47
+npm install ak47 # or wget https://raw.github.com/azer/ak47/master/ak47.min.js
 ```
 
 # USAGE EXAMPLES
