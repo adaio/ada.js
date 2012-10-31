@@ -37,9 +37,9 @@ foo.bar(Math.PI);
 ```
 
 ```javascript
-var bike = ak47({ model: 'giant', price: 1000 }),
-    car  = ak47({ model: 'peugeot', price: 10000 }),
-    total: ak47(bike.price, car.price, function(bikePrice, carPrice){
+var bike  = ak47({ model: 'giant', price: 1000 }),
+    car   = ak47({ model: 'peugeot', price: 10000 }),
+    total = ak47(bike.price, car.price, function(bikePrice, carPrice){
         return bikePrice + carPrice;
     });
 
@@ -77,6 +77,8 @@ console.log( color.raw() ): // puts "red"
 
 ## PubSub
 
+Extending AK47's PubSub:
+
 ```js
 var foo = ak47.pubsub({});
 
@@ -85,6 +87,18 @@ foo.subscribe(function(a, b, c){
 });
 
 foo.publish(3, 1, 4);
+```
+
+Creating a new PubSub Object:
+
+```js
+var bar = ak47.pubsub(); // or ak47();
+
+bar(function(a, b, c){ // or bar.subscribe(function ..
+  console.log(a, b, c); // puts 3, 1, 4
+});
+
+bar.publish(3, 1, 4);
 ```
 
 ## Observing Arrays
