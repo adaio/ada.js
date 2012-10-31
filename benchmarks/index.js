@@ -1,13 +1,10 @@
-var ak47 = require('../ak47'),
-    EventEmitter = require('events').EventEmitter;
-
-var start = (console.profile || console.time).bind(console),
-    end = (console.profileEnd || console.timeEnd).bind(console);
+var start = (/*console.profile || */console.time).bind(console),
+    end = (/*console.profileEnd || */ console.timeEnd).bind(console);
 
 function b(name, fn){
   start(name);
 
-  var i = 99999;
+  var i = 33333;
   while(i-->0){
     fn();
   }
@@ -15,118 +12,76 @@ function b(name, fn){
   end(name);
 }
 
-b('plain', function(){
+b('backbone-model', function(){
 
-  var obj = {
+  var M = Backbone.Model.extend({
+    defaults: {
+      foo: 123,
+      bar: 456,
+      qux: undefined
+    }
+  });
+
+  var o = new M();
+
+  o.on('change:qux', function(model){
+  });
+
+  o.set({ qux: o.get('bar') });
+
+}); 
+
+b('ember-plain', function(){
+
+  var obj = Ember.Object.create({
     foo: 123,
     bar: 456,
     qux: undefined
-  };
+  });
 
-  obj.qux = obj.foo;
-
-});
-
-b('accessors', function(){
-
-   var foo = 123,
-       bar = 456,
-       qux = undefined; 
-
-  function getFoo(){
-    return foo;
-  }
-
-  function setFoo(newValue){
-    return foo = newValue;
-  }
-
-  function getBar(){
-    return bar;
-  }
-
-  function setBar(newValue){
-    return bar = newValue;
-  }
-
-  function getQux(){
-    return qux;
-  }
-
-  function setQux(newValue){
-    return qux = newValue;
-  }
-
-  var obj = {
-    getFoo: getFoo,
-    setFoo: setFoo,
-    getBar: getBar,
-    setBar: setBar,
-    getQux: getQux,
-    setQux: setQux
-  };
-
-  obj.setQux(obj.getFoo());
+  obj.set('qux', obj.get('foo'));
 
 });
 
-b('pubsub', function(){
+b('ember-plain-observing', function(){
 
-   var foo = 123,
-       bar = 456,
-       qux = undefined; 
+  var obj = Ember.Object.create({
+    foo: 123,
+    bar: 456,
+    qux: undefined
+  });
 
-  var eventEmitter = new EventEmitter();
+  obj.addObserver('qux', function(){
+  });
 
-  function getFoo(){
-    return foo;
-  }
-
-  function setFoo(newValue){
-    return foo = newValue;
-  }
-
-  function getBar(){
-    return bar;
-  }
-
-  function setBar(newValue){
-    return bar = newValue;
-  }
-
-  function getQux(){
-    return qux;
-  }
-
-  function setQux(newValue){
-    var oldValue = qux;
-    qux = newValue;
-    eventEmitter.emit('quxChange', newValue, oldValue);
-  }
-
-  var obj = {
-    getFoo: getFoo,
-    setFoo: setFoo,
-    getBar: getBar,
-    setBar: setBar,
-    getQux: getQux,
-    setQux: setQux
-  };
-
-  obj.setQux(obj.getFoo());
-
-  eventEmitter.on('quxChange', function(){});
+  obj.set('qux', obj.get('foo'));
 
 });
 
-b('ak47-accessors', function(){
+b('ember-model', function(){
+
+  var M = Ember.Object.extend({
+    foo: 123,
+    bar: 456,
+    qux: undefined
+  });
+
+  var o = M.create();
+
+  o.addObserver('qux', function(){
+  });
+
+  o.set('qux', o.get('foo'));
+
+});
+
+b('ak47-plain', function(){
 
   var obj = ak47({
     foo: 123,
     bar: 456,
     qux: undefined
   });
-
 
   obj.qux(obj.foo);
 
@@ -140,8 +95,9 @@ b('ak47-sub', function(){
   });
 
   obj.qux.subscribe(function(){
-  
   });
+
+  obj.qux(obj.foo());
 
 });
 
@@ -153,8 +109,9 @@ b('ak47-subAll', function(){
   });
 
   ak47(obj.qux, function(){
-  
   });
+
+  obj.qux(obj.foo());
 
 });
 
@@ -166,9 +123,27 @@ b('ak47-pubsub', function(){
   });
 
   obj.qux.subscribe(function(){
-  
   });
 
   obj.qux(obj.foo());
+
+});
+
+
+b('ak47-model', function(){
+
+  function M(){
+    return ak47({
+      foo: 123,
+      bar: 456,
+      qux: undefined
+    });
+  }
+
+  var o = M(); 
+  o.qux.subscribe(function(){
+  });
+  o.qux(o.foo());
+
 
 });
