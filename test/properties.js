@@ -172,3 +172,10 @@ exports.testDate = function(done){
 
   done();
 }
+
+exports.testCreateViaProxy = function(done){
+  var foo = ak47(3.14);
+  assert.equal(foo(), 3.14);
+  assert(foo.isAK47Property);
+  done();
+}

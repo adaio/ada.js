@@ -52,3 +52,19 @@ exports.testUnsubscribe = function(done){
 
   onfoo.publish();
 };
+
+exports.testCreatingViaProxy = function(done){
+  var onfoo = ak47();
+
+  assert(onfoo.subscribe);
+  assert(onfoo.extendsAk47Pubsub);
+
+  onfoo(function(a, b, c){
+    assert.equal(a, 3);
+    assert.equal(b, 1);
+    assert.equal(c, 4);
+    done();
+  });
+
+  onfoo.publish(3, 1, 4);
+};

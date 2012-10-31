@@ -14,10 +14,12 @@ var ak47 = (function(undefined){
       fn = subscribeAll;
     } else if(args.length == 1 && Array.isArray(args[0])) {
       fn = pubsub;
-    } else {
+    } else if(args.length) {
       fn = property;
       args = args.slice(0, 1);
-    };
+    } else {
+      fn = pubsub;
+    }
 
     return fn.apply(undefined, args);
   }
