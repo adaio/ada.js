@@ -1,4 +1,4 @@
-Ak47 is a tiny JavaScript library for defining observable properties and objects that can interact with eachother.
+Ak47 is a lightweight JavaScript library for defining observable properties that can interact with eachother. See examples and the code itself for documentation.
 
 * Example App: http://jsfiddle.net/azer/AC6GL
 * Performance Comparison with Backbone and Ember: http://jsfiddle.net/azer/TaADd/
