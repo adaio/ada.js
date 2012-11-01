@@ -11,7 +11,7 @@ npm install ak47 # or wget https://raw.github.com/azer/ak47/master/ak47.min.js
 
 # USAGE EXAMPLES
 
-The simpliest use case is:
+The simpliest usage would be:
 
 ```js
 > var greeting = ak47('Hello World');
@@ -23,7 +23,7 @@ The simpliest use case is:
 > "what's up?", "Hello World" // see 2nd line
 ```
 
-## Observable Properties
+## Bindings, Observable Properties
 
 ```js
 
