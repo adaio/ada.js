@@ -49,7 +49,7 @@ var bike  = ak47({ model: 'giant', price: 1000 }),
 console.log(total()); // puts 11000
 
 total.subscribe(function(newTotalPrice, oldTotalPrice){
-    console.log(totalPrice, ); // puts 15000, 11000
+    console.log(totalPrice, oldTotalPrice); // puts 15000, 11000
     console.log(total()); // puts 15000.
 });
 
