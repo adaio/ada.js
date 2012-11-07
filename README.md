@@ -3,6 +3,8 @@ Ak47 is a lightweight JavaScript library for defining observable properties that
 * Example App: http://jsfiddle.net/azer/AC6GL
 * Performance Comparison with Backbone and Ember: http://jsfiddle.net/azer/TaADd/
 
+![](https://pbs.twimg.com/media/A4QpVg8CcAAALMY.jpg)
+
 # INSTALL
 
 ```bash
