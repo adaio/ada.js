@@ -8,15 +8,51 @@ var ak47 = (function(undefined){
     var args = Array.prototype.slice.call(arguments),
         fn;
 
+    /**
+     * shortcut to 'newObject'
+     *
+     * @param {Object}
+     * @return {Object}
+     */
     if(args.length == 1 && typeof args[0] == 'object' && args[0].constructor == Object){
       fn = newObject;
+
+    /**
+     * shortcut to 'subscribeAll'
+     *
+     * @param {Ak47Property...}
+     * @param {Function}
+     * @return {Ak47Property}
+     */
     } else if(args.length > 1 && args.slice(0, args.length - 1).every(isObservable)){
       fn = subscribeAll;
+
+    /**
+     * shortcut to 'pubsub'
+     *
+     * @param {Array}
+     * @return {Ak47Pubsub}
+     */
     } else if(args.length == 1 && Array.isArray(args[0])) {
       fn = pubsub;
+
+    /**
+     * shortcut to 'property'
+     *
+     * @param {Anything} <optional>
+     * @param {Function} getter <optional>
+     * @param {Function} setter <optional>
+     * @return {Ak47Property}
+     */
     } else if(args.length) {
       fn = property;
       args = args.slice(0, 1);
+
+    /**
+     * shortcut to 'pubsub'
+     *
+     * @return {Ak47Pubsub}
+     */
     } else {
       fn = pubsub;
     }
@@ -206,7 +242,7 @@ var ak47 = (function(undefined){
   /**
    * Subscribe callback to all given properties
    *
-   * @param {...Property} to
+   * @param {Property...} to
    * @param {Function} callback
    */
   function subscribeAll(){
