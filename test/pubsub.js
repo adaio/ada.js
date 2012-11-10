@@ -78,7 +78,7 @@ exports.testSyncPublishing = function(done){
         assert.deepEqual([foo, bar], expected[i]);
 
         return foo + bar;
-      }).sync(),
+      }),
 
       expected = [[6, 14], [6, 159]],
       i = 0;
@@ -89,4 +89,26 @@ exports.testSyncPublishing = function(done){
   i++;
 
   done();
+}
+
+exports.testErrorHandling = function(done){
+
+  var foo = ak47(), err = new Error();
+
+  err.expected = true;
+
+  foo.subscribe(function(){
+    throw err;
+  });
+
+  ak47(foo, function(){
+    throw err;
+  });
+
+  foo.subscribe(function(){
+    done();
+  });
+
+  foo.publish();
+
 }

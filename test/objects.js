@@ -114,7 +114,7 @@ exports.testObservingCustomPubSubs = function(done){
     assert.equal(d, true);
 
     done();
-  });
+  }).batch();
 
   number(156);
   string('bar');

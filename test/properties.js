@@ -130,7 +130,7 @@ exports.testPubsub = function(_done){
 
 };
 
-exports.testSubscribeViaProxy = function(done){
+exports.testSubscribeAll = function(done){
 
   var mybike = ak47(combat()),
       values = [['red', 2000, 'foo'], ['blue', 2000, 'quux']],
@@ -147,7 +147,7 @@ exports.testSubscribeViaProxy = function(done){
     if(y==2) done();
   }
 
-  var prop = ak47(mybike.color, mybike.price, mybike.nickname, observer);
+  ak47(mybike.color, mybike.price, mybike.nickname, observer).batch();
 
   mybike.nickname('foo');
   mybike.price(2000);
@@ -159,6 +159,73 @@ exports.testSubscribeViaProxy = function(done){
   }, 100);
 
 };
+
+exports.testSubscribeAllSetter = function(done){
+
+  var foo = ak47(3),
+      bar = ak47(14),
+
+      qux = ak47(foo, bar, function(foo, bar){
+        return foo + bar; 
+      }, foo),
+
+      corge = ak47(qux, function(qux){
+        return qux * 10; 
+      }).setter(qux);
+
+
+  assert.equal(qux(), 17);
+  assert.equal(corge(), 170);
+
+  qux(6);
+
+  assert.equal(qux(), 20);
+  assert.equal(corge(), 200);
+
+  corge(8);
+
+  assert.equal(qux(), 22);
+  assert.equal(corge(), 220);
+
+  done();
+}
+
+exports.testSubscribeAllTree = function(done){
+
+  var foo = ak47(3),
+
+      bar = ak47(foo, function(foo){
+        return foo * 10;
+      }),
+
+      qux = ak47(bar, function(bar){
+        return bar * 2;
+      }),
+
+      corge = ak47(qux, function(qux){
+        return qux * 5;
+      });
+
+  assert.equal(foo(), 3);
+  assert.equal(bar(), 30);
+  assert.equal(qux(), 60);
+  assert.equal(corge(), 300);
+
+  foo(10);
+  assert.equal(foo(), 10);
+
+  setTimeout(function(){
+    assert.equal(bar(), 100);
+    assert.equal(qux(), 200);
+
+    setTimeout(function(){
+      assert.equal(corge(), 1000);
+
+      done();
+
+    }, 0);
+  }, 0);
+}
 
 exports.testDate = function(done){
   var mybike = combat(),

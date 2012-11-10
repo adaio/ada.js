@@ -20,11 +20,12 @@ var ak47 = (function(undefined){
     /**
      * shortcut to 'subscribeAll'
      *
-     * @param {Ak47Property...}
-     * @param {Function}
+     * @param {Ak47Property...} to
+     * @param {Function} getter
+     * @param {Function} setter <optional>
      * @return {Ak47Property}
      */
-    } else if(args.length > 1 && args.slice(0, args.length - 1).every(isObservable)){
+    } else if(args.length > 1 && args.slice(0, args.length - 2).every(isObservable) && typeof args[ args.length - 2 ] == 'function' && typeof args[ args.length - 1 ] == 'function'){
       fn = subscribeAll;
 
     /**
@@ -107,49 +108,73 @@ var ak47 = (function(undefined){
     if(from && from.subscribers && from.subscribers.length == 0) return;
 
     var args = Array.prototype.slice.call(arguments, 1),
-        oldValue;
+        newValue, oldValue;
 
     from.subscribers.forEach(function(cb, i){
       if( !cb || typeof cb.fn != 'function' ) return;
+
+      /**
+       * Callbacks subscribed via `subscribe` method.
+       */
+      if( !cb.ak47Subscriber ){
+
+        try {
+          cb.fn.apply(undefined, args);
+        } catch (exc){
+          setTimeout(function(){ throw exc; }, 0);
+        }
+
+        return;
+      }
 
       /**
        * Functions subscribed via `subscribeAll`
        * (equivalent of ak47(properties..., function(){});
        * are marked as ak47Subscriber.
        */
-      if( cb.ak47Subscriber ){
-        cb.harvest[cb.column] = args[0];
+      cb.harvest[cb.column] = args[0];
 
-        if(!cb.batch()){
-          oldValue = cb.harvest.value;
-          cb.harvest.value = cb.fn.apply(undefined, cb.harvest);
+      if(!cb.batch()){
 
-          cb.property.publish(cb.harvest.value, oldValue);
+        oldValue = cb.harvest.value;
 
+        try {
+          newValue = cb.fn.apply(undefined, cb.harvest);
+        } catch (exc) {
+          setTimeout(function(){ throw exc; }, 0);
           return;
         }
 
-        if(cb.harvest.call != undefined){
-          clearTimeout(cb.harvest.call);
-          cb.call = undefined;
-        }
+        cb.harvest.value = newValue;
 
-        cb.harvest.call = setTimeout(function(){
-          cb.harvest.call = undefined;
-
-          oldValue = cb.harvest.value;
-          cb.harvest.value = cb.fn.apply(undefined, cb.harvest),
-
-          cb.property.publish(cb.harvest.value, oldValue);
-
-        }, 0);
+        cb.property.publish(cb.harvest.value, oldValue);
 
         return;
       }
 
-      nextTick(function(){
-        cb.fn.apply(undefined, args);
-      });
+      if(cb.harvest.call != undefined){
+        clearTimeout(cb.harvest.call);
+        cb.call = undefined;
+      }
+
+      cb.harvest.call = setTimeout(function(){
+        cb.harvest.call = undefined;
+
+        oldValue = cb.harvest.value;
+
+        try {
+          newValue = cb.fn.apply(undefined, cb.harvest);
+        } catch (exc) {
+          setTimeout(function(){ throw exc; }, 0);
+          return;
+        }
+
+        cb.harvest.value = newValue;
+
+        cb.property.publish(cb.harvest.value, oldValue);
+
+      }, 0);
+
     });
   }
 
@@ -255,19 +280,25 @@ var ak47 = (function(undefined){
    * Subscribe callback to all given properties
    *
    * @param {Property...} to
-   * @param {Function} callback
+   * @param {Function} getter
+   * @param {Function} setter
+   * @return {Ak47Property}
    */
   function subscribeAll(){
-    var to      = Array.prototype.slice.call(arguments, 0, arguments.length - 1),
-        harvest = [],
-        cb      = arguments[arguments.length - 1],
-        batch   = true;
+    var harvest = [],
+
+        setter  = isObservable(arguments[ arguments.length - 2]) ? undefined : arguments[ arguments.length - 1 ],
+        getter  = arguments[arguments.length - ( setter ? 2 : 1 ) ],
+
+        to      = Array.prototype.slice.call(arguments, 0, arguments.length - ( setter ? 2 : 1 )),
+
+        batch   = false;
 
     var i = -1, property;
     while( ++i < to.length ){
       property = to[i];
       harvest[i] = typeof property == 'function' ? property() : property;
-      property.subscribe({ fn: cb, property: proxy, ak47Subscriber: true, harvest: harvest, column: i, batch: toBatch });
+      property.subscribe({ fn: getter, property: proxy, ak47Subscriber: true, harvest: harvest, column: i, batch: toBatch });
     }
 
     function toBatch(){
@@ -275,11 +306,20 @@ var ak47 = (function(undefined){
     }
 
     function proxy(){
-      return cb.apply(this, harvest);
+      if(arguments.length && setter){
+        setter.apply(this, arguments);
+      }
+
+      return getter.apply(this, harvest);
     };
 
-    proxy.sync = function prop(){
-      batch = false;
+    proxy.batch = function setBatch(){
+      batch = true;
+      return proxy;
+    };
+
+    proxy.setter = function(fn){
+      setter = fn; 
       return proxy;
     };
 
