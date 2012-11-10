@@ -106,36 +106,49 @@ var ak47 = (function(undefined){
   function publish(from){
     if(from && from.subscribers && from.subscribers.length == 0) return;
 
-    var args = Array.prototype.slice.call(arguments, 1);
+    var args = Array.prototype.slice.call(arguments, 1),
+        oldValue;
 
-    nextTick(function(){
+    from.subscribers.forEach(function(cb, i){
+      if( !cb || typeof cb.fn != 'function' ) return;
 
-      from.subscribers.forEach(function(cb, i){
-        if( !cb || typeof cb.fn != 'function' ) return;
+      /**
+       * Functions subscribed via `subscribeAll`
+       * (equivalent of ak47(properties..., function(){});
+       * are marked as ak47Subscriber.
+       */
+      if( cb.ak47Subscriber ){
+        cb.harvest[cb.column] = args[0];
 
-        if( cb.ak47Subscriber ){
-          cb.harvest[cb.column] = args[0];
+        if(!cb.batch()){
+          oldValue = cb.harvest.value;
+          cb.harvest.value = cb.fn.apply(undefined, cb.harvest);
 
-          if(cb.harvest.call != undefined){
-            clearTimeout(cb.harvest.call);
-            cb.call = undefined;
-          }
-
-          cb.harvest.call = setTimeout(function(){
-            cb.harvest.call = undefined;
-
-            var oldValue = cb.harvest.value;
-            cb.harvest.value = cb.fn.apply(undefined, cb.harvest),
-
-            cb.property.publish(cb.harvest.value, oldValue);
-          }, 0);
+          cb.property.publish(cb.harvest.value, oldValue);
 
           return;
         }
 
-        nextTick(function(){
-          cb.fn.apply(undefined, args);
-        });
+        if(cb.harvest.call != undefined){
+          clearTimeout(cb.harvest.call);
+          cb.call = undefined;
+        }
+
+        cb.harvest.call = setTimeout(function(){
+          cb.harvest.call = undefined;
+
+          oldValue = cb.harvest.value;
+          cb.harvest.value = cb.fn.apply(undefined, cb.harvest),
+
+          cb.property.publish(cb.harvest.value, oldValue);
+
+        }, 0);
+
+        return;
+      }
+
+      nextTick(function(){
+        cb.fn.apply(undefined, args);
       });
     });
   }
@@ -177,7 +190,7 @@ var ak47 = (function(undefined){
   /**
    * Create and return a new property.
    *
-   * @param {Anything} rawValue
+   * @param {Anything} rawValue (optional)
    * @param {Function} getter (optional)
    * @param {Function} setter (optional)
    */
@@ -204,12 +217,11 @@ var ak47 = (function(undefined){
       return value;
     }
 
-    function set(update, noEmit){
-      var old = !noEmit ? get() : undefined;
-
+    function set(update, options){
+      var old = !(options && options.skipPublishing) ? get() : undefined;
       value = setter ? setter(update, value) : update;
 
-      !noEmit && publish(proxy, get(), old);
+      !(options && options.skipPublishing) && publish(proxy, get(), old);
 
       return value;
     }
@@ -224,7 +236,7 @@ var ak47 = (function(undefined){
       return publish.apply(undefined, args);
     };
 
-    set(rawValue, true);
+    set(rawValue, { skipPublishing: true });
 
     return proxy;
   }
@@ -248,21 +260,31 @@ var ak47 = (function(undefined){
   function subscribeAll(){
     var to      = Array.prototype.slice.call(arguments, 0, arguments.length - 1),
         harvest = [],
-        cb      = arguments[arguments.length - 1];
-
+        cb      = arguments[arguments.length - 1],
+        batch   = true;
 
     var i = -1, property;
     while( ++i < to.length ){
       property = to[i];
       harvest[i] = typeof property == 'function' ? property() : property;
-      property.subscribe({ fn: cb, property: proxy, ak47Subscriber: true, harvest: harvest, column: i });
+      property.subscribe({ fn: cb, property: proxy, ak47Subscriber: true, harvest: harvest, column: i, batch: toBatch });
+    }
+
+    function toBatch(){
+      return batch;
     }
 
     function proxy(){
       return cb.apply(this, harvest);
     };
 
+    proxy.sync = function prop(){
+      batch = false;
+      return proxy;
+    };
+
     pubsub(proxy);
+
     proxy.isAK47Property = true;
     proxy.raw            = proxy;
 

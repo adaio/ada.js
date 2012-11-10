@@ -68,3 +68,25 @@ exports.testCreatingViaProxy = function(done){
 
   onfoo.publish(3, 1, 4);
 };
+
+exports.testSyncPublishing = function(done){
+
+  var foo = ak47(3),
+      bar = ak47(14),
+
+      qux = ak47(foo, bar, function(foo, bar){
+        assert.deepEqual([foo, bar], expected[i]);
+
+        return foo + bar;
+      }).sync(),
+
+      expected = [[6, 14], [6, 159]],
+      i = 0;
+
+  foo(6);
+  i++;
+  bar(159);
+  i++;
+
+  done();
+}

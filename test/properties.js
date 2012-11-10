@@ -173,6 +173,22 @@ exports.testDate = function(done){
   done();
 }
 
+exports.testFunction = function(done){
+
+  // FIXME
+  return done();
+
+  function f(){ return 3.14; };
+
+  var foo = ak47(f),
+      bar = ak47.property(f);
+
+  assert.equal(foo(), 3.14);
+  assert.equal(bar(), 3.14);
+
+  done();
+};
+
 exports.testCreateViaProxy = function(done){
   var foo = ak47(3.14);
   assert.equal(foo(), 3.14);
