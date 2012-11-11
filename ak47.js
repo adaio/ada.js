@@ -1,9 +1,5 @@
 var ak47 = (function(undefined){
 
-  var nextTick = typeof process != 'undefined' && process.nextTick || function(fn){
-    setTimeout(function(){ fn(); }, 0);
-  };
-
   function ak47(){
     var args = Array.prototype.slice.call(arguments),
         fn;
@@ -61,7 +57,6 @@ var ak47 = (function(undefined){
     return fn.apply(undefined, args);
   }
 
-  ak47.nextTick   = nextTick;
   ak47.pubsub     = pubsub;
   ak47.property   = property;
 
