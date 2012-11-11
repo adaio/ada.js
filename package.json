@@ -14,7 +14,8 @@
     "url": "http://github.com/azer/ak47.git"
   },
   "devDependencies": {
-    "highkick": "1.x"
+    "highkick": "1.x",
+    "uglify-js": "1.x"
   },
   "scripts": {
     "test": "./node_modules/highkick/bin/highkick test/main.js"

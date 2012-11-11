@@ -1,5 +1,5 @@
 var highkick = require('highkick'),
-    ak47     = require('../'),
+    ak47     = require('./ak47'),
     assert   = require('assert');
 
 function combat(){
