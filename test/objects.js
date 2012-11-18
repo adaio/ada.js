@@ -79,8 +79,7 @@ exports.testHarvestChaining = function(done){
     assert.equal(garage.total(), 55000);
     assert.equal(wealth(), 2055000);
 
-    wealth.subscribe(function(newValue, oldValue){
-      assert.equal(oldValue, 2055000);
+    wealth.subscribe(function(newValue){
       assert.equal(newValue, 3055000);
 
       done();
@@ -92,7 +91,7 @@ exports.testHarvestChaining = function(done){
 
 };
 
-exports.testObservingCustomPubSubs = function(done){
+exports.testObservingManualPublishes = function(done){
   var number = ak47(3.14),
       string = ak47('foo'),
       array  = ak47([3.14, 156]),
@@ -114,7 +113,7 @@ exports.testObservingCustomPubSubs = function(done){
     assert.equal(d, true);
 
     done();
-  }).batch();
+  });
 
   number(156);
   string('bar');
@@ -127,7 +126,7 @@ exports.testObservingCustomPubSubs = function(done){
 
 exports.testDateObjects = function(done){
 
-  var now = new Date, 
+  var now = new Date,
       date = ak47(now);
 
   assert.equal(date(), now);

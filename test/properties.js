@@ -82,6 +82,23 @@ exports.testGetterSetter = function(done){
 
 };
 
+exports.testRaw = function(done){
+
+  var foo = ak47.property(500, function(f){ return f * 10; }, function(f){ return f / 2; });
+
+  assert.equal(foo(), 2500);
+  assert.equal(foo.raw(), 250);
+
+  foo(10);
+  assert.equal(foo(), 50);
+
+  foo.raw(10);
+  assert.equal(foo(), 100);
+
+  done(); 
+
+};
+
 exports.testPubsub = function(_done){
 
   var mybike = ak47(combat());
@@ -130,7 +147,26 @@ exports.testPubsub = function(_done){
 
 };
 
-exports.testSubscribeAll = function(done){
+exports.testSubscribeTo = function(done){
+
+  var foo = ak47(3),
+      bar = ak47(foo, function(f){
+        assert(f == 14 || f == 24);
+        return f * 10;
+      });
+
+
+  foo(14);
+  assert.equal(bar(), 140);
+
+  foo(24);
+  assert.equal(bar(), 240);
+
+  done();
+
+}
+
+exports.testSubscribeToBatch = function(done){
 
   var mybike = ak47(combat()),
       values = [['red', 2000, 'foo'], ['blue', 2000, 'quux']],
@@ -147,7 +183,7 @@ exports.testSubscribeAll = function(done){
     if(y==2) done();
   }
 
-  ak47(mybike.color, mybike.price, mybike.nickname, observer).batch();
+  ak47(mybike.color, mybike.price, mybike.nickname, observer);
 
   mybike.nickname('foo');
   mybike.price(2000);
@@ -160,7 +196,7 @@ exports.testSubscribeAll = function(done){
 
 };
 
-exports.testSubscribeAllSetter = function(done){
+exports.testSubscribeToWithSetter = function(done){
 
   var foo = ak47(3),
       bar = ak47(14),
@@ -171,8 +207,7 @@ exports.testSubscribeAllSetter = function(done){
 
       corge = ak47(qux, function(qux){
         return qux * 10; 
-      }).setter(qux);
-
+      }, qux);
 
   assert.equal(qux(), 17);
   assert.equal(corge(), 170);
@@ -190,7 +225,7 @@ exports.testSubscribeAllSetter = function(done){
   done();
 }
 
-exports.testSubscribeAllTree = function(done){
+exports.testSubscribeToTree = function(done){
 
   var foo = ak47(3),
 

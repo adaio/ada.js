@@ -78,7 +78,7 @@ exports.testSyncPublishing = function(done){
         assert.deepEqual([foo, bar], expected[i]);
 
         return foo + bar;
-      }),
+      }).sync(true),
 
       expected = [[6, 14], [6, 159]],
       i = 0;
@@ -89,19 +89,21 @@ exports.testSyncPublishing = function(done){
   i++;
 
   done();
-}
+};
 
 exports.testErrorHandling = function(done){
 
-  var foo = ak47(), err = new Error();
-
-  err.expected = true;
+  var foo = ak47();
 
   foo.subscribe(function(){
+    var err = new Error;
+    err.expected = true;
     throw err;
   });
 
   ak47(foo, function(){
+    var err = new Error;
+    err.expected = true;
     throw err;
   });
 
@@ -111,4 +113,8 @@ exports.testErrorHandling = function(done){
 
   foo.publish();
 
-}
+};
+
+process.on('uncaughtException', function (err) {
+  if(!err.expected) throw err;
+});
