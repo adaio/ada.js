@@ -124,6 +124,40 @@ exports.testObservingManualPublishes = function(done){
   bool(true);
 };
 
+exports.testObservingPubsub = function(done){
+  var n1 = ak47(10),
+      n2 = ak47(20),
+      onChange = ak47(),
+      onFoo = ak47(),
+      onBar = ak47(),
+      sum = ak47(onChange, onFoo, onBar, function(n1, n2, foo, bar){
+        console.log('>>>', arguments);
+
+        assert.equal(n1, 20);
+        assert.equal(n2, 30);
+        assert.equal(foo, undefined);
+        assert.equal(bar, undefined);
+
+        return n1() + n2();
+      }),
+      sumPlus10 = ak47(sum, function(sum){
+        return sum + 10;
+      });
+
+  ak47(n1, n2, onChange);
+
+  n1(20);
+  n2(30);
+
+  sumPlus10.subscribe(function(newSum, oldSum){
+    assert.equal(newSum, 50);
+    assert.equal(oldSum, undefined);
+
+    done();
+  });
+
+};
+
 exports.testDateObjects = function(done){
 
   var now = new Date,

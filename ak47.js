@@ -110,15 +110,15 @@ var ak47 = (function(undefined){
         newValue, oldValue;
 
     from.subscribers.forEach(function(cb, i){
-      if( !cb || typeof cb.fn != 'function' ) return;
+      if( !cb || typeof cb.callback != 'function' ) return;
 
       /**
        * Callbacks subscribed via `subscribe` method.
        */
-      if( !cb.ak47Subscriber ){
+      if( !cb.isAk47Subscriber ){
 
         try {
-          cb.fn.apply(undefined, args);
+          cb.callback.apply(undefined, args);
         } catch(exc) {
           setTimeout(function(){ throw exc; }, 0);
         }
@@ -132,9 +132,15 @@ var ak47 = (function(undefined){
        * are marked as ak47Subscriber.
        */
       cb.harvest[cb.column] = args[0];
+      oldValue              = cb.harvest.value;
 
       if(!cb.batch()){
-        cb.property.publish(cb.property());
+        if(cb.getter){
+          newValue = cb.harvest.value = cb.getter.apply(undefined, cb.harvest);
+          cb.pubsub.publish(newValue, oldValue);
+        } else {
+          cb.pubsub.publish.apply(undefined, cb.harvest);
+        }
         return;
       }
 
@@ -144,8 +150,13 @@ var ak47 = (function(undefined){
       }
 
       cb.harvest.call = setTimeout(function(){
-        cb.harvest.call = undefined;
-        cb.property.publish(cb.property());
+        if(cb.getter){
+          newValue = cb.harvest.value = cb.getter.apply(undefined, cb.harvest);
+          cb.harvest.call = undefined;
+          cb.pubsub.publish(newValue, oldValue);
+        } else {
+          cb.pubsub.publish.apply(undefined, cb.harvest);
+        }
       }, 0);
 
     });
@@ -158,7 +169,7 @@ var ak47 = (function(undefined){
    * @return {Function}
    */
   function pubsub(customProxy){
-    var proxy = customProxy || function proxy(){
+    var proxy = customProxy || function pubsubProxy(){
       return sub.apply(undefined, arguments);
     };
 
@@ -194,13 +205,14 @@ var ak47 = (function(undefined){
    * @return {Ak47Property}
    */
   function property(rawValue, getter, setter){
-    var value = undefined;
+    var value = undefined,
+        proxy = propertyProxy;
 
     function get(){
       return getter ? getter(value) : value;
     }
 
-    function proxy(update){
+    function propertyProxy(update){
       if( arguments.length > 0 ){
         set(update);
       }
@@ -235,12 +247,10 @@ var ak47 = (function(undefined){
       return publish.apply(undefined, args);
     };
 
-    rawValue != property.DO_NOT_SET && set(rawValue, { skipPublishing: true });
+    set(rawValue, { skipPublishing: true });
 
     return proxy;
   }
-
-  property.DO_NOT_SET = new Object;
 
   /**
    * Subscribe callback to given pubsub object.
@@ -250,29 +260,32 @@ var ak47 = (function(undefined){
    */
   function subscribe(to, callback){
     if(!callback) throw new Error('Invalid callback: '+ callback);
-    to.subscribers.push(typeof callback == 'function' ? { fn: callback } : callback);
+    to.subscribers.push(typeof callback == 'function' ? { callback: callback } : callback);
   }
 
   /**
    * Subscribe to all given properties
    *
    * @param {Property...} to
-   * @param {Function} callback
+   * @param {Ak47Pubsub, Function} subscriber
    * @param {Function} setter
    * @return {Ak47Property}
    */
   function subscribeTo(){
-    var harvest = [],
+    var harvest    = [],
 
-        setter  = arguments.length < 3 ||  isObservable(arguments[ arguments.length - 2]) ? undefined : arguments[ arguments.length - 1 ],
-        getter  = arguments[ arguments.length - ( setter ? 2 : 1 ) ],
+        setter     = arguments.length < 3 ||  isObservable(arguments[ arguments.length - 2]) ? undefined : arguments[ arguments.length - 1 ],
+        subscriber = arguments[ arguments.length - ( setter ? 2 : 1 ) ],
 
-        proxy   = property(property.DO_NOT_SET, callback, setter),
+        batch      = true,
 
-        batch   = true;
+        proxy, callback, getter;
 
-    function callback(){
-      return getter.apply(null, harvest);
+    function accessor(){
+      if(arguments.length){
+        return setter.apply(undefined, arguments);
+      }
+      return getter.apply(undefined, harvest);
     }
 
     function subscribe(){
@@ -281,15 +294,17 @@ var ak47 = (function(undefined){
       while( ++i < to.length ){
         prop = to[i];
 
-        harvest[ col + i ] = prop.isAK47Property ? prop() : undefined;
+        harvest[ col + i ] = prop.isAK47Property ? prop() : prop;
 
         prop.subscribe({
-          fn: getter,
-          property: proxy,
-          ak47Subscriber: true,
-          harvest: harvest,
-          column: i,
-          batch: toBatch
+          isAk47Subscriber : true,
+          callback         : callback,
+          getter           : getter,
+          setter           : setter,
+          pubsub           : proxy,
+          harvest          : harvest,
+          column           : i,
+          batch            : toBatch
         });
       }
     }
@@ -298,12 +313,22 @@ var ak47 = (function(undefined){
       return batch;
     }
 
+    if(subscriber.extendsAk47Pubsub){
+      proxy = subscriber;
+      getter = undefined;
+      callback = subscriber.publish;
+    } else {
+      proxy = pubsub(accessor);
+      getter = subscriber;
+      callback = subscriber;
+    }
+
     proxy.sync = function sync(){
       batch = false;
       return proxy;
     };
 
-    pubsub(proxy);
+    proxy.isAK47Property = true;
     subscribe.apply(null, Array.prototype.slice.call(arguments, 0, arguments.length - ( setter ? 2 : 1 )));
 
     return proxy;

@@ -155,7 +155,6 @@ exports.testSubscribeTo = function(done){
         return f * 10;
       });
 
-
   foo(14);
   assert.equal(bar(), 140);
 
@@ -164,9 +163,9 @@ exports.testSubscribeTo = function(done){
 
   done();
 
-}
+};
 
-exports.testSubscribeToBatch = function(done){
+exports.testSubscribeToBatching = function(done){
 
   var mybike = ak47(combat()),
       values = [['red', 2000, 'foo'], ['blue', 2000, 'quux']],
@@ -196,34 +195,6 @@ exports.testSubscribeToBatch = function(done){
 
 };
 
-exports.testSubscribeToWithSetter = function(done){
-
-  var foo = ak47(3),
-      bar = ak47(14),
-
-      qux = ak47(foo, bar, function(foo, bar){
-        return foo + bar; 
-      }, foo),
-
-      corge = ak47(qux, function(qux){
-        return qux * 10; 
-      }, qux);
-
-  assert.equal(qux(), 17);
-  assert.equal(corge(), 170);
-
-  qux(6);
-
-  assert.equal(qux(), 20);
-  assert.equal(corge(), 200);
-
-  corge(8);
-
-  assert.equal(qux(), 22);
-  assert.equal(corge(), 220);
-
-  done();
-}
 
 exports.testSubscribeToTree = function(done){
 
@@ -260,7 +231,85 @@ exports.testSubscribeToTree = function(done){
 
     }, 0);
   }, 0);
-}
+};
+
+
+exports.testSubscribeToWithSetter = function(done){
+
+  var foo = ak47(3),
+      bar = ak47(14),
+
+      qux = ak47(foo, bar, function(foo, bar){
+        return foo + bar;
+      }, foo),
+
+      corge = ak47(qux, function(qux){
+        return qux * 10;
+      }, qux);
+
+  assert.equal(qux(), 17);
+  assert.equal(corge(), 170);
+
+  qux(6);
+
+  setTimeout(function(){
+
+    assert.equal(qux(), 20);
+    assert.equal(corge(), 200);
+
+    corge(8);
+
+    setTimeout(function(){
+
+      assert.equal(qux(), 22);
+      assert.equal(corge(), 220);
+
+      done();
+
+    }, 0);
+
+  }, 0);
+
+};
+
+exports.testPubsubSubscribesTo = function(done){
+  var n1 = ak47(3),
+      n2 = ak47(6),
+      onChange = ak47();
+
+  ak47(n1, n2, onChange);
+
+  onChange(function(n1, n2){
+    assert.equal(n1, 30);
+    assert.equal(n2, 60);
+
+    done();
+  });
+
+  n1(30);
+  n2(60);
+};
+
+exports.testPubsubSubscribesToSync = function(done){
+  var n1 = ak47(3),
+      n2 = ak47(6),
+      onChange = ak47();
+
+  ak47(n1, n2, onChange).sync();
+
+  var n = [[30, 6], [30, 60]], i=0;
+
+  onChange(function(n1, n2){
+    assert.equal(n1, n[i][0]);
+    assert.equal(n2, n[i][1]);
+
+    i == 1 && done();
+    i++;
+  });
+
+  n1(30);
+  n2(60);
+};
 
 exports.testDate = function(done){
   var mybike = combat(),
@@ -296,4 +345,4 @@ exports.testCreateViaProxy = function(done){
   assert.equal(foo(), 3.14);
   assert(foo.isAK47Property);
   done();
-}
+};
