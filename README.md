@@ -57,7 +57,7 @@ total.subscribe(function(newTotalPrice, oldTotalPrice){
 bike.price(5000);
 ```
 
-### OOP
+## OOP
 
 ```js
 
@@ -75,6 +75,18 @@ function Person(firstName, lastName){
 
   return obj;
 }
+
+var john = Person('John', 'Lennon');
+
+john.onChange(function(firstName, lastName){
+  console.log('John has been updated: ', firstName, lastName);
+});
+
+assert.equal( john.fullName(), 'John Lennon');
+
+john.firstName('John Winston'); // sets name as "John Winston"
+
+assert.equal( john.fullName(), 'John Winston Lennon');
 ```
 
 A more detailed example located here; https://gist.github.com/4136102
