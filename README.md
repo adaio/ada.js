@@ -2,6 +2,7 @@ Ak47 is a lightweight JavaScript library for defining observable properties that
 
 * Example App: http://jsfiddle.net/azer/AC6GL
 * Performance Comparison with Backbone and Ember: http://jsfiddle.net/azer/TaADd/
+* OOP W/ AK47: https://gist.github.com/4136102
 
 ![](https://pbs.twimg.com/media/A4QpVg8CcAAALMY.jpg)
 
@@ -16,35 +17,33 @@ npm install ak47 # or wget https://raw.github.com/azer/ak47/master/ak47.min.js
 The simpliest usage would be:
 
 ```js
-> var greeting = ak47('Hello World');
-> greeting.subscribe(console.log);
-> greeting()
-"Hello World"
-> greeting("what's up?")
-"what's up?"
-> "what's up?", "Hello World" // see 2nd line
+> var greeting = ak47('Hello'),
+      name     = ak47('Kitty'),
+      message  = ak47(greeting, name, function(greeting, name){ // or: ak47.subscribeTo( ...
+        return greeting + ' ' + name + '!';
+      });
+
+> message();
+"Hello Kitty!"
+
+> message.subscribe(function(newMsg, oldMsg){
+    console.log("[LOG] New message: " + newMsg);
+  });
+
+> greeting('Hi') & name('Azer');
+> [LOG] New message: Hi Azer!
+
+> message();
+Hi Azer!
 ```
 
-## Bindings, Observable Properties
-
-```js
-
-var foo = ak47({ 'bar': 3.14 });
-
-foo.bar(); // 3.14
-foo.bar(3.14159); // 3.14159
-
-foo.bar.subscribe(function(update, old){ // or ak47(foo.bar, function(update){
-  console.log(update, old); // puts whatever Math.PI is and 3.14159
-});
-
-foo.bar(Math.PI);
-```
+## Objects
 
 ```javascript
 var bike  = ak47({ model: 'giant', price: 1000 }),
     car   = ak47({ model: 'peugeot', price: 10000 }),
-    total = ak47(bike.price, car.price, function(bikePrice, carPrice){
+
+    total = ak47(bike.price, car.price, function(bikePrice, carPrice){ // gets called when bike.price and/or car.price are updated
         return bikePrice + carPrice;
     });
 
@@ -57,6 +56,28 @@ total.subscribe(function(newTotalPrice, oldTotalPrice){
 
 bike.price(5000);
 ```
+
+### OOP
+
+```js
+
+function Person(firstName, lastName){
+  var obj = ak47({
+    firstName: firstName,
+    lastName: lastName
+  });
+
+  obj.fullName = ak47(obj.firstName, obj.lastName, function(first, last){
+    return first + ' ' + last;
+  });
+
+  obj.onChange = ak47(obj.firstName, obj.lastName, ak47());
+
+  return obj;
+}
+```
+
+A more detailed example located here; https://gist.github.com/4136102
 
 ## Getters and Setters
 
