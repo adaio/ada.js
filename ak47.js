@@ -333,6 +333,7 @@ var ak47 = (function(undefined){
 
     proxy.harvest = harvest;
     proxy.isAK47Property = true;
+    proxy.isAK47Callback = true;
     proxy.subscribeTo = loop;
 
     proxy.getter = function(){

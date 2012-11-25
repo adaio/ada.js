@@ -1,1 +1,0 @@
-azerkoculu@Azers-MacBook-Pro.local.15126
