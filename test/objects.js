@@ -124,21 +124,129 @@ exports.testObservingManualPublishes = function(done){
   bool(true);
 };
 
-exports.testObservingPubsub = function(done){
-  var n1 = ak47(10),
-      n2 = ak47(20),
+exports.testSubscribingObservationTree = function(_done){
+  function done(){
+    if(done.q && done.r) _done();
+  };
+
+  var n = ak47(10),
+      t = ak47(n, function(n){
+        return n * n;
+      }),
+      k = ak47(n, function(n){
+        return n * 2;
+      }),
+      q = ak47(t, k, function(t, k){
+        return t * t + k + k + 5;
+      }),
+      r = ak47(q, function(q){
+        assert.equal(q, 650);
+        return q / 10;
+      });
+
+  q.subscribe(function(q){
+    assert.equal(q, 650);
+    done.q = true;
+    done();
+  });
+
+  r.subscribe(function(r){
+    assert.equal(r, 65);
+    done.r = true;
+    done();
+  });
+
+  n(5);
+};
+
+exports.testSubscribePubsub = function(done){
+  var n = ak47(10),
+      r = ak47(20),
+      onChange = ak47.pubsub();
+
+  ak47(n, r, onChange);
+
+  onChange.subscribe(function(n, r){
+    assert.equal(n, 300);
+    assert.equal(r, 200);
+    done();
+  });
+
+  n(500);
+  n(300);
+  r(200);
+};
+
+exports.testSubscribeToPubsub = function(done){
+  var n        = ak47(10),
+      r        = ak47(20),
+      onChange = ak47.pubsub();
+
+  ak47(n, r, onChange);
+
+  var expected = [[10, 200], [600, 200]], i = 0;
+
+  ak47(onChange, function(n, r){
+    assert.equal(n, expected[i][0]);
+    assert.equal(r, expected[i][1]);
+    i == 1 && done();
+    i++;
+  });
+
+  r(200);
+
+  setTimeout(function(){
+    n(600);
+  }, 250);
+
+};
+
+exports.testSubscribeToPubsubs = function(done){
+  var n        = ak47(10),
+      r        = ak47(20),
+      onChange = ak47.pubsub(),
+      onFoo    = ak47.pubsub(),
+      onBar    = ak47.pubsub();
+
+  ak47(n, r, onChange);
+
+  var expected = [[10, 200], [600, 200]], i = 0;
+
+  ak47(onChange, onFoo, onBar, function(n, r, foo, bar){
+    assert.equal(n, expected[i][0]);
+    assert.equal(r, expected[i][1]);
+    assert.equal(foo, undefined);
+    assert.equal(bar, undefined);
+
+    i == 1 && done();
+    i++;
+  });
+
+  r(200);
+
+  setTimeout(function(){
+    n(600);
+  }, 250);
+
+};
+
+exports.testObservingPubsubTree = function(done){
+  var changed  = false,
+      n1       = ak47(10),
+      n2       = ak47(20),
       onChange = ak47(),
-      onFoo = ak47(),
-      onBar = ak47(),
-      sum = ak47(onChange, onFoo, onBar, function(n1, n2, foo, bar){
-        console.log('>>>', arguments);
+      onFoo    = ak47(),
+      onBar    = ak47(),
+      sum      = ak47(onChange, onFoo, onBar, function(n1, n2, foo, bar){
 
-        assert.equal(n1, 20);
-        assert.equal(n2, 30);
-        assert.equal(foo, undefined);
-        assert.equal(bar, undefined);
+        if(changed){
+          assert.equal(n1, 20);
+          assert.equal(n2, 30);
+          assert.equal(foo, undefined);
+          assert.equal(bar, undefined);
+        }
 
-        return n1() + n2();
+        return n1 + n2;
       }),
       sumPlus10 = ak47(sum, function(sum){
         return sum + 10;
@@ -149,8 +257,10 @@ exports.testObservingPubsub = function(done){
   n1(20);
   n2(30);
 
+  changed = true;
+
   sumPlus10.subscribe(function(newSum, oldSum){
-    assert.equal(newSum, 50);
+    assert.equal(newSum, 60);
     assert.equal(oldSum, undefined);
 
     done();

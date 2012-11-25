@@ -61,8 +61,9 @@ var ak47 = (function(undefined){
     return fn.apply(undefined, args);
   }
 
-  ak47.pubsub     = pubsub;
-  ak47.property   = property;
+  ak47.pubsub      = pubsub;
+  ak47.property    = property;
+  ak47.subscribeTo = subscribeTo;
 
   /**
    * Determine if given parameter is observable
@@ -131,8 +132,13 @@ var ak47 = (function(undefined){
        * (equivalent of ak47(properties..., function(){});
        * are marked as ak47Subscriber.
        */
-      cb.harvest[cb.column] = args[0];
-      oldValue              = cb.harvest.value;
+      if(from.extendsAk47Pubsub && !from.hasCustomProxy && args.length > 1){
+        Array.prototype.splice.apply(cb.harvest, [cb.column, args.length].concat(args));
+      } else {
+        cb.harvest[cb.column] = args[0];
+      }
+
+      oldValue = cb.harvest.value;
 
       if(!cb.batch()){
         if(cb.getter){
@@ -170,7 +176,7 @@ var ak47 = (function(undefined){
    */
   function pubsub(customProxy){
     var proxy = customProxy || function pubsubProxy(){
-      return sub.apply(undefined, arguments);
+      arguments.length && sub.apply(undefined, arguments);
     };
 
     function sub(callback){
@@ -192,6 +198,7 @@ var ak47 = (function(undefined){
     proxy.unsubscribe       = unsub;
     proxy.publish           = pub;
     proxy.extendsAk47Pubsub = true;
+    proxy.hasCustomProxy    = !!customProxy;
 
     return proxy;
   }
@@ -285,16 +292,17 @@ var ak47 = (function(undefined){
       if(arguments.length){
         return setter.apply(undefined, arguments);
       }
+
       return getter.apply(undefined, harvest);
     }
 
-    function subscribe(){
+    function loop(){
       var i = -1, col = harvest.length, to = arguments, prop;
 
       while( ++i < to.length ){
         prop = to[i];
 
-        harvest[ col + i ] = prop.isAK47Property ? prop() : prop;
+        harvest[ col + i ] = prop.isAK47Property ? prop() : undefined;
 
         prop.subscribe({
           isAk47Subscriber : true,
@@ -303,7 +311,7 @@ var ak47 = (function(undefined){
           setter           : setter,
           pubsub           : proxy,
           harvest          : harvest,
-          column           : i,
+          column           : col + i,
           batch            : toBatch
         });
       }
@@ -323,13 +331,26 @@ var ak47 = (function(undefined){
       callback = subscriber;
     }
 
+    proxy.harvest = harvest;
+    proxy.isAK47Property = true;
+    proxy.subscribeTo = loop;
+
+    proxy.getter = function(){
+      getter = arguments[0];
+      return proxy;
+    };
+
+    proxy.setter = function(){
+      setter = arguments[0];
+      return proxy;
+    };
+
     proxy.sync = function sync(){
       batch = false;
       return proxy;
     };
 
-    proxy.isAK47Property = true;
-    subscribe.apply(null, Array.prototype.slice.call(arguments, 0, arguments.length - ( setter ? 2 : 1 )));
+    loop.apply(null, Array.prototype.slice.call(arguments, 0, arguments.length - ( setter ? 2 : 1 )));
 
     return proxy;
   };
