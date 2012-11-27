@@ -37,19 +37,27 @@ exports.testSubscribe = function(_done){
 };
 
 exports.testUnsubscribe = function(done){
-  var onfoo = ak47.pubsub(), failed = false;
+  var onfoo = ak47.pubsub(), failed = false, calledOnce = false;
 
   function cb(){
-    done(new Error('unsubscribed callback has been called'));
-    failed = true;
+    if(calledOnce){
+      done(new Error('unsubscribed callback has been called'));
+      failed = true;
+    }
+
+    calledOnce = true;
+    onfoo.unsubscribe(cb);
+
+    onfoo(function(){
+      if(failed) return;
+
+      done();
+    });
+
+    onfoo.publish();
   }
 
-  onfoo(function(){
-    if(failed) return;
-
-    done();
-  });
-
+  onfoo(cb);
   onfoo.publish();
 };
 

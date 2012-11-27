@@ -384,8 +384,17 @@ var ak47 = (function(undefined){
    * @param {Function} callback
    */
   function unsubscribe(to, callback){
-    var callbacks = to.subscribers;
-    callbacks[ callbacks.indexOf(callback) ] = undefined;
+    var i = to.subscribers.length;
+
+    while(i--){
+      if(to.subscribers[i].callback == callback){
+        to.subscribers[i] = undefined;
+
+        return i;
+      }
+    }
+
+    return false;
   }
 
   return ak47;
