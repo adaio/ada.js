@@ -14,7 +14,7 @@ var ak47 = (function(undefined){
      * @param {Object}
      * @return {Object}
      */
-    if(args.length == 1 && typeof args[0] == 'object' && args[0].constructor == Object){
+    if( (args.length == 1 || Array.isArray(args[1]) ) && typeof args[0] == 'object' && args[0].constructor == Object){
       fn = newObject;
 
     /**
@@ -88,10 +88,10 @@ var ak47 = (function(undefined){
 
     for(key in raw){
       val = raw[key];
-      obj[key] = ( !Array.isArray(exceptions) || ! key in exceptions )
+      obj[key] = ( !Array.isArray(exceptions) || exceptions.indexOf(key) == -1 )
         && ( typeof val != 'object' || val.constructor != Object )
         && ( typeof val != 'function' )
-        ? property(val)
+        ? ( Array.isArray(val) && pubsub || property) (val)
         : val;
     }
 
@@ -141,6 +141,8 @@ var ak47 = (function(undefined){
       oldValue = cb.harvest.value;
 
       if(!cb.batch()){
+        cb.harvest.sync();
+
         if(cb.getter){
           newValue = cb.harvest.value = cb.getter.apply(undefined, cb.harvest);
           cb.pubsub.publish(newValue, oldValue);
@@ -156,6 +158,8 @@ var ak47 = (function(undefined){
       }
 
       cb.harvest.call = setTimeout(function(){
+        cb.harvest.sync();
+
         if(cb.getter){
           newValue = cb.harvest.value = cb.getter.apply(undefined, cb.harvest);
           cb.harvest.call = undefined;
@@ -254,7 +258,7 @@ var ak47 = (function(undefined){
       return publish.apply(undefined, args);
     };
 
-    set(rawValue, { skipPublishing: true });
+    rawValue !== value && set(rawValue, { skipPublishing: true });
 
     return proxy;
   }
@@ -279,12 +283,12 @@ var ak47 = (function(undefined){
    * @return {Ak47Property}
    */
   function subscribeTo(){
-    var harvest    = [],
+    var harvest       = [],
+        subscriptions = [],
+        setter        = arguments.length < 3 ||  isObservable(arguments[ arguments.length - 2]) ? undefined : arguments[ arguments.length - 1 ],
+        subscriber    = arguments[ arguments.length - ( setter ? 2 : 1 ) ],
 
-        setter     = arguments.length < 3 ||  isObservable(arguments[ arguments.length - 2]) ? undefined : arguments[ arguments.length - 1 ],
-        subscriber = arguments[ arguments.length - ( setter ? 2 : 1 ) ],
-
-        batch      = true,
+        batch         = true,
 
         proxy, callback, getter;
 
@@ -293,16 +297,24 @@ var ak47 = (function(undefined){
         return setter.apply(undefined, arguments);
       }
 
+      harvest.sync();
+
       return getter.apply(undefined, harvest);
     }
 
     function loop(){
-      var i = -1, col = harvest.length, to = arguments, prop;
+      var i   = -1,
+          col = harvest.length,
+          to  = arguments,
+          len = to.length,
+          prop;
 
-      while( ++i < to.length ){
+      while( ++i < len ){
         prop = to[i];
 
-        harvest[ col + i ] = prop.isAK47Property ? prop() : undefined;
+//        harvest[ col + i ]       = prop.isAK47Property ? prop() : undefined;
+        harvest[ col + i ]       = undefined;
+        subscriptions[ col + i ] = prop.isAK47Property ? prop : undefined;
 
         prop.subscribe({
           isAk47Subscriber : true,
@@ -331,10 +343,11 @@ var ak47 = (function(undefined){
       callback = subscriber;
     }
 
-    proxy.harvest = harvest;
+    proxy.harvest        = harvest;
     proxy.isAK47Property = true;
     proxy.isAK47Callback = true;
-    proxy.subscribeTo = loop;
+    proxy.subscribeTo    = loop;
+    proxy.subscriptions  = subscriptions;
 
     proxy.getter = function(){
       getter = arguments[0];
@@ -349,6 +362,14 @@ var ak47 = (function(undefined){
     proxy.sync = function sync(){
       batch = false;
       return proxy;
+    };
+
+    harvest.sync = function(){
+      var i = -1, len = subscriptions.length;
+      while( ++i < len ){
+        if(harvest[i] != undefined || !subscriptions[i]) continue;
+        harvest[i] = subscriptions[i]();
+      }
     };
 
     loop.apply(null, Array.prototype.slice.call(arguments, 0, arguments.length - ( setter ? 2 : 1 )));

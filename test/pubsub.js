@@ -180,6 +180,12 @@ exports.testSubscribeTo = function(done){
 
   t.subscribeTo(q, x);
 
+  assert.equal(t.subscriptions.length, 4);
+  assert.equal(t.subscriptions[0], n);
+  assert.equal(t.subscriptions[1], r);
+  assert.equal(t.subscriptions[2], q);
+  assert.equal(t.subscriptions[3], x);
+
   t.subscribe(function(newValue, oldValue){
     assert.equal(newValue, 1200);
     assert.equal(oldValue, undefined);
@@ -280,7 +286,7 @@ exports.testSubscribeToPubsub = function(done){
       r        = ak47(20),
       onChange = ak47.pubsub();
 
-  ak47(n, r, onChange);
+  var p = ak47(n, r, onChange);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
@@ -365,8 +371,6 @@ exports.testObservingPubsubTree = function(done){
   });
 
 };
-
-
 
 process.on('uncaughtException', function (err) {
   if(!err.ignore) throw err;

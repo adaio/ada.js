@@ -286,3 +286,21 @@ exports.testDateObjects = function(done){
 
   }, 100);
 };
+
+exports.testArray = function(done){
+
+  var arr1 = [],
+      arr2 = [],
+      foo = ak47({
+        bar: arr1
+      });
+
+  assert.equal(foo.bar.extendsAk47Pubsub, true);
+  assert.equal(foo.bar, arr1);
+  assert.equal(foo.bar, arr1);
+
+  assert.equal(ak47(arr2), arr2);
+  assert.equal(arr2.extendsAk47Pubsub, true);
+
+  done();
+};

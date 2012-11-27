@@ -346,3 +346,14 @@ exports.testCreateViaProxy = function(done){
   assert(foo.isAK47Property);
   done();
 };
+
+exports.testSkipSettingDefaultValue = function(done){
+  var failed = false;
+  var foo = ak47(undefined, undefined, function(){
+    failed = true;
+    done(new Error('setter shouldnt have been called'));
+  });
+
+  !failed && done();
+
+};
