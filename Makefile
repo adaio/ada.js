@@ -1,6 +1,10 @@
 target=main
 module=ak47
 
+test:
+	@$(MAKE) link
+	@$(MAKE) kick
+
 min:
 	@rm -f ak47.min.js
 	@./node_modules/.bin/uglifyjs -nm -o ak47.min.js ak47.js
@@ -12,10 +16,6 @@ link:
 
 kick:
 	@./node_modules/.bin/highkick test/$(target).js
-
-test:
-	@$(MAKE) link
-	@$(MAKE) kick
 
 test-min:
 	@$(MAKE) link module=ak47.min
