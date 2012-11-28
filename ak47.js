@@ -1,8 +1,4 @@
-var ak47 = (function(undefined){
-
-  var nextTick = typeof process != 'undefined' && process.nextTick || function nextTick(fn){
-    return setTimeout(fn, 0);
-  };
+var ak47 = (function(undef, undefined){
 
   function ak47(){
     var args = Array.prototype.slice.call(arguments),
@@ -58,7 +54,7 @@ var ak47 = (function(undefined){
       fn = pubsub;
     }
 
-    return fn.apply(undefined, args);
+    return fn.apply(undef, args);
   }
 
   ak47.pubsub      = pubsub;
@@ -119,7 +115,7 @@ var ak47 = (function(undefined){
       if( !cb.isAk47Subscriber ){
 
         try {
-          cb.callback.apply(undefined, args);
+          cb.callback.apply(undef, args);
         } catch(exc) {
           setTimeout(function(){ throw exc; }, 0);
         }
@@ -144,28 +140,28 @@ var ak47 = (function(undefined){
         cb.harvest.sync();
 
         if(cb.getter){
-          newValue = cb.harvest.value = cb.getter.apply(undefined, cb.harvest);
+          newValue = cb.harvest.value = cb.getter.apply(undef, cb.harvest);
           cb.pubsub.publish(newValue, oldValue);
         } else {
-          cb.pubsub.publish.apply(undefined, cb.harvest);
+          cb.pubsub.publish.apply(undef, cb.harvest);
         }
         return;
       }
 
-      if(cb.harvest.call != undefined){
+      if(cb.harvest.call != undef){
         clearTimeout(cb.harvest.call);
-        cb.call = undefined;
+        cb.call = undef;
       }
 
       cb.harvest.call = setTimeout(function(){
         cb.harvest.sync();
 
         if(cb.getter){
-          newValue = cb.harvest.value = cb.getter.apply(undefined, cb.harvest);
-          cb.harvest.call = undefined;
+          newValue = cb.harvest.value = cb.getter.apply(undef, cb.harvest);
+          cb.harvest.call = undef;
           cb.pubsub.publish(newValue, oldValue);
         } else {
-          cb.pubsub.publish.apply(undefined, cb.harvest);
+          cb.pubsub.publish.apply(undef, cb.harvest);
         }
       }, 0);
 
@@ -180,7 +176,7 @@ var ak47 = (function(undefined){
    */
   function pubsub(customProxy){
     var proxy = customProxy || function pubsubProxy(){
-      arguments.length && sub.apply(undefined, arguments);
+      arguments.length && sub.apply(undef, arguments);
     };
 
     function sub(callback){
@@ -194,7 +190,7 @@ var ak47 = (function(undefined){
     function pub(){
       var args = [proxy];
       Array.prototype.push.apply(args, arguments);
-      publish.apply(undefined, args);
+      publish.apply(undef, args);
     }
 
     proxy.subscribers       = [];
@@ -216,7 +212,7 @@ var ak47 = (function(undefined){
    * @return {Ak47Property}
    */
   function property(rawValue, getter, setter){
-    var value = undefined,
+    var value = undef,
         proxy = propertyProxy;
 
     function get(){
@@ -240,7 +236,7 @@ var ak47 = (function(undefined){
     }
 
     function set(update, options){
-      var old = !(options && options.skipPublishing) ? get() : undefined;
+      var old = !(options && options.skipPublishing) ? get() : undef;
       value = setter ? setter(update, value) : update;
 
       !(options && options.skipPublishing) && publish(proxy, get(), old);
@@ -255,7 +251,7 @@ var ak47 = (function(undefined){
 
     proxy.publish = function publishProperty(){
       var args = [proxy, get()].concat(Array.prototype.slice.call(arguments));
-      return publish.apply(undefined, args);
+      return publish.apply(undef, args);
     };
 
     rawValue !== value && set(rawValue, { skipPublishing: true });
@@ -283,23 +279,22 @@ var ak47 = (function(undefined){
    * @return {Ak47Property}
    */
   function subscribeTo(){
-    var harvest       = [],
+    var args          = arguments,
+        harvest       = [],
         subscriptions = [],
-        setter        = arguments.length < 3 ||  isObservable(arguments[ arguments.length - 2]) ? undefined : arguments[ arguments.length - 1 ],
-        subscriber    = arguments[ arguments.length - ( setter ? 2 : 1 ) ],
-
+        setter        = args.length < 3 ||  isObservable(args[ args.length - 2]) ? undef : args[ args.length - 1 ],
+        subscriber    = args[ args.length - ( setter ? 2 : args[args.length-1].extendsAk47Pubsub ? 0 : 1 ) ],
         batch         = true,
-
         proxy, callback, getter;
 
     function accessor(){
       if(arguments.length){
-        return setter.apply(undefined, arguments);
+        return setter.apply(undef, arguments);
       }
 
       harvest.sync();
 
-      return getter.apply(undefined, harvest);
+      return getter.apply(undef, harvest);
     }
 
     function loop(){
@@ -312,9 +307,8 @@ var ak47 = (function(undefined){
       while( ++i < len ){
         prop = to[i];
 
-//        harvest[ col + i ]       = prop.isAK47Property ? prop() : undefined;
-        harvest[ col + i ]       = undefined;
-        subscriptions[ col + i ] = prop.isAK47Property ? prop : undefined;
+        harvest[ col + i ]       = undef;
+        subscriptions[ col + i ] = prop.isAK47Property ? prop : undef;
 
         prop.subscribe({
           isAk47Subscriber : true,
@@ -333,10 +327,10 @@ var ak47 = (function(undefined){
       return batch;
     }
 
-    if(subscriber.extendsAk47Pubsub){
-      proxy = subscriber;
-      getter = undefined;
-      callback = subscriber.publish;
+    if (!subscriber) {
+      proxy = pubsub();
+      getter = undef;
+      callback = proxy.publish;
     } else {
       proxy = pubsub(accessor);
       getter = subscriber;
@@ -348,11 +342,6 @@ var ak47 = (function(undefined){
     proxy.isAK47Callback = true;
     proxy.subscribeTo    = loop;
     proxy.subscriptions  = subscriptions;
-
-    proxy.getter = function(){
-      getter = arguments[0];
-      return proxy;
-    };
 
     proxy.setter = function(){
       setter = arguments[0];
@@ -367,12 +356,12 @@ var ak47 = (function(undefined){
     harvest.sync = function(){
       var i = -1, len = subscriptions.length;
       while( ++i < len ){
-        if(harvest[i] != undefined || !subscriptions[i]) continue;
+        if(harvest[i] != undef || !subscriptions[i]) continue;
         harvest[i] = subscriptions[i]();
       }
     };
 
-    loop.apply(null, Array.prototype.slice.call(arguments, 0, arguments.length - ( setter ? 2 : 1 )));
+    loop.apply(null, Array.prototype.slice.call(arguments, 0, arguments.length - ( setter ? 2 : subscriber ? 1 : 0 )));
 
     return proxy;
   };
@@ -388,7 +377,7 @@ var ak47 = (function(undefined){
 
     while(i--){
       if(to.subscribers[i].callback == callback){
-        to.subscribers[i] = undefined;
+        to.subscribers[i] = undef;
 
         return i;
       }

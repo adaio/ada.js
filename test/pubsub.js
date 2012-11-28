@@ -274,9 +274,7 @@ exports.testSubscribingObservationTree = function(_done){
 exports.testSubscribePubsub = function(done){
   var n = ak47(10),
       r = ak47(20),
-      onChange = ak47.pubsub();
-
-  ak47(n, r, onChange);
+      onChange = ak47(n, r);
 
   onChange.subscribe(function(n, r){
     assert.equal(n, 300);
@@ -291,14 +289,13 @@ exports.testSubscribePubsub = function(done){
 
 exports.testSubscribeToPubsub = function(done){
   var n        = ak47(10),
-      r        = ak47(20),
-      onChange = ak47.pubsub();
+      r        = ak47(20);
 
-  var p = ak47(n, r, onChange);
+  var p = ak47(n, r);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  ak47(onChange, function(n, r){
+  ak47(p, function(n, r){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     i == 1 && done();
@@ -316,11 +313,9 @@ exports.testSubscribeToPubsub = function(done){
 exports.testSubscribeToPubsubs = function(done){
   var n        = ak47(10),
       r        = ak47(20),
-      onChange = ak47.pubsub(),
+      onChange = ak47(n, r),
       onFoo    = ak47.pubsub(),
       onBar    = ak47.pubsub();
-
-  ak47(n, r, onChange);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
@@ -346,7 +341,7 @@ exports.testObservingPubsubTree = function(done){
   var changed  = false,
       n1       = ak47(10),
       n2       = ak47(20),
-      onChange = ak47(),
+      onChange = ak47(n1, n2),
       onFoo    = ak47(),
       onBar    = ak47(),
       sum      = ak47(onChange, onFoo, onBar, function(n1, n2, foo, bar){
@@ -364,8 +359,6 @@ exports.testObservingPubsubTree = function(done){
         return sum + 10;
       });
 
-  ak47(n1, n2, onChange);
-
   n1(20);
   n2(30);
 
@@ -378,6 +371,50 @@ exports.testObservingPubsubTree = function(done){
     done();
   });
 
+};
+
+exports.testEventCombination = function(done){
+  var foo = ak47(),
+      bar = ak47(),
+      qux = ak47(),
+      corge = ak47(foo, bar, qux);
+
+  corge.subscribe(function(foo, bar, qux){
+    assert.equal(bar, 'bar');
+    assert.equal(qux, 'qux');
+    assert.equal(foo, 'foo');
+
+    done();
+  });
+
+  bar.publish('bar');
+  qux.publish('qux');
+  foo.publish('foo');
+};
+
+exports.testEventCombinationWithMultipleArgs = function(done){
+  console.warn('fix me: event combination with multiple args');
+  return done();
+
+  var foo = ak47(),
+      bar = ak47(),
+      qux = ak47(),
+      corge = ak47(foo, bar, qux, ak47());
+
+  corge.subscribe(function(fo, o, bar, q, u, x){
+    assert.equal(fo, 'fo');
+    assert.equal(o, 'o');
+    assert.equal(bar, 'bar');
+    assert.equal(q, 'q');
+    assert.equal(u, 'u');
+    assert.equal(x, 'x');
+
+    done();
+  });
+
+  bar.publish('bar');
+  qux.publish('q', 'u', 'x');
+  foo.publish('fo', 'o');
 };
 
 process.on('uncaughtException', function (err) {

@@ -235,7 +235,6 @@ exports.testSubscribeToTree = function(done){
 
 
 exports.testSubscribeToWithSetter = function(done){
-
   var foo = ak47(3),
       bar = ak47(14),
 
@@ -272,12 +271,10 @@ exports.testSubscribeToWithSetter = function(done){
 
 };
 
-exports.testPubsubSubscribesTo = function(done){
+exports.testPubsubSubscribesToProperties = function(done){
   var n1 = ak47(3),
       n2 = ak47(6),
-      onChange = ak47();
-
-  ak47(n1, n2, onChange);
+      onChange = ak47(n1, n2);
 
   onChange(function(n1, n2){
     assert.equal(n1, 30);
@@ -290,12 +287,10 @@ exports.testPubsubSubscribesTo = function(done){
   n2(60);
 };
 
-exports.testPubsubSubscribesToSync = function(done){
+exports.testPubsubSubscribesToSyncProperties = function(done){
   var n1 = ak47(3),
       n2 = ak47(6),
-      onChange = ak47();
-
-  ak47(n1, n2, onChange).sync();
+      onChange = ak47(n1, n2).sync();
 
   var n = [[30, 6], [30, 60]], i=0;
 

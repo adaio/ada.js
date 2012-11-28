@@ -162,9 +162,7 @@ exports.testSubscribingObservationTree = function(_done){
 exports.testSubscribePubsub = function(done){
   var n = ak47(10),
       r = ak47(20),
-      onChange = ak47.pubsub();
-
-  ak47(n, r, onChange);
+      onChange = ak47(n, r);
 
   onChange.subscribe(function(n, r){
     assert.equal(n, 300);
@@ -180,9 +178,7 @@ exports.testSubscribePubsub = function(done){
 exports.testSubscribeToPubsub = function(done){
   var n        = ak47(10),
       r        = ak47(20),
-      onChange = ak47.pubsub();
-
-  ak47(n, r, onChange);
+      onChange = ak47(n, r);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
@@ -204,11 +200,9 @@ exports.testSubscribeToPubsub = function(done){
 exports.testSubscribeToPubsubs = function(done){
   var n        = ak47(10),
       r        = ak47(20),
-      onChange = ak47.pubsub(),
+      onChange = ak47(n, r),
       onFoo    = ak47.pubsub(),
       onBar    = ak47.pubsub();
-
-  ak47(n, r, onChange);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
@@ -234,7 +228,7 @@ exports.testObservingPubsubTree = function(done){
   var changed  = false,
       n1       = ak47(10),
       n2       = ak47(20),
-      onChange = ak47(),
+      onChange = ak47(n1, n2),
       onFoo    = ak47(),
       onBar    = ak47(),
       sum      = ak47(onChange, onFoo, onBar, function(n1, n2, foo, bar){
@@ -251,8 +245,6 @@ exports.testObservingPubsubTree = function(done){
       sumPlus10 = ak47(sum, function(sum){
         return sum + 10;
       });
-
-  ak47(n1, n2, onChange);
 
   n1(20);
   n2(30);
