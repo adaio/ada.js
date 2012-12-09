@@ -376,7 +376,7 @@ var ak47 = (function(undef, undefined){
     var i = to.subscribers.length;
 
     while(i--){
-      if(to.subscribers[i].callback == callback){
+      if(to.subscribers[i] && to.subscribers[i].callback == callback){
         to.subscribers[i] = undef;
 
         return i;

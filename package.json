@@ -1,6 +1,6 @@
 {
   "name": "ak47",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "description": "A JavaScript Library For Creating Observable Classes",
   "author": "Azer Koculu <azer@kodfabrik.com>",
   "keywords": [
