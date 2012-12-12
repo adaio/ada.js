@@ -1,6 +1,6 @@
-var ak47 = (function(undef, undefined){
+var map = (function(undef, undefined){
 
-  function ak47(){
+  function map(){
     var args = Array.prototype.slice.call(arguments),
         fn;
 
@@ -16,10 +16,10 @@ var ak47 = (function(undef, undefined){
     /**
      * shortcut to 'subscribeTo'
      *
-     * @param {Ak47Property...} to
+     * @param {MapProperty...} to
      * @param {Function} callback
      * @param {Function} setter <optional>
-     * @return {Ak47Property}
+     * @return {MapProperty}
      */
     } else if(args.length > 1 && args.slice(0, args.length - 2).every(isObservable) && typeof args[ args.length - 2 ] == 'function' && typeof args[ args.length - 1 ] == 'function'){
       fn = subscribeTo;
@@ -28,7 +28,7 @@ var ak47 = (function(undef, undefined){
      * shortcut to 'pubsub'
      *
      * @param {Array}
-     * @return {Ak47Pubsub}
+     * @return {MapPubsub}
      */
     } else if(args.length == 1 && Array.isArray(args[0])) {
       fn = pubsub;
@@ -39,7 +39,7 @@ var ak47 = (function(undef, undefined){
      * @param {Anything} <optional>
      * @param {Function} getter <optional>
      * @param {Function} setter <optional>
-     * @return {Ak47Property}
+     * @return {MapProperty}
      */
     } else if(args.length) {
       fn = property;
@@ -48,7 +48,7 @@ var ak47 = (function(undef, undefined){
     /**
      * shortcut to 'pubsub'
      *
-     * @return {Ak47Pubsub}
+     * @return {MapPubsub}
      */
     } else {
       fn = pubsub;
@@ -57,9 +57,9 @@ var ak47 = (function(undef, undefined){
     return fn.apply(undef, args);
   }
 
-  ak47.pubsub      = pubsub;
-  ak47.property    = property;
-  ak47.subscribeTo = subscribeTo;
+  map.pubsub      = pubsub;
+  map.property    = property;
+  map.subscribeTo = subscribeTo;
 
   /**
    * Determine if given parameter is observable
@@ -68,12 +68,12 @@ var ak47 = (function(undef, undefined){
    * @return {Boolean}
    */
   function isObservable(el){
-    return el && el.extendsAk47Pubsub;
+    return el && el.extendsMapPubsub;
   }
 
   /**
-   * Clone given object by converting its content to ak47 properties.
-   * Pass property names in "exceptions" to move properties without converting.
+   * Clone given object by converting its content to map properties.
+   * Pass property, names in "exceptions" to move properties without converting.
    *
    * @param {Object} raw
    * @param {Array} exceptions (optional)
@@ -112,7 +112,7 @@ var ak47 = (function(undef, undefined){
       /**
        * Callbacks subscribed via `subscribe` method.
        */
-      if( !cb.isAk47Subscriber ){
+      if( !cb.isMapSubscriber ){
 
         try {
           cb.callback.apply(undef, args);
@@ -125,10 +125,10 @@ var ak47 = (function(undef, undefined){
 
       /**
        * Functions subscribed via `subscribeTo`
-       * (equivalent of ak47(properties..., function(){});
-       * are marked as ak47Subscriber.
+       * (equivalent of map(properties..., function(){});
+       * are marked as mapSubscriber.
        */
-      if(from.extendsAk47Pubsub && !from.hasCustomProxy && args.length > 1){
+      if(from.extendsMapPubsub && !from.hasCustomProxy && args.length > 1){
         Array.prototype.splice.apply(cb.harvest, [cb.column, args.length].concat(args));
       } else {
         cb.harvest[cb.column] = args[0];
@@ -197,7 +197,7 @@ var ak47 = (function(undef, undefined){
     proxy.subscribe         = sub;
     proxy.unsubscribe       = unsub;
     proxy.publish           = pub;
-    proxy.extendsAk47Pubsub = true;
+    proxy.extendsMapPubsub = true;
     proxy.hasCustomProxy    = !!customProxy;
 
     return proxy;
@@ -209,7 +209,7 @@ var ak47 = (function(undef, undefined){
    * @param {Anything} rawValue (optional)
    * @param {Function} getter (optional)
    * @param {Function} setter (optional)
-   * @return {Ak47Property}
+   * @return {MapProperty}
    */
   function property(rawValue, getter, setter){
     var value = undef,
@@ -246,7 +246,7 @@ var ak47 = (function(undef, undefined){
 
     pubsub(proxy);
 
-    proxy.isAK47Property = true;
+    proxy.isMapProperty = true;
     proxy.raw            = raw;
 
     proxy.publish = function publishProperty(){
@@ -274,16 +274,16 @@ var ak47 = (function(undef, undefined){
    * Subscribe to all given properties
    *
    * @param {Property...} to
-   * @param {Ak47Pubsub, Function} subscriber
+   * @param {MapPubsub, Function} subscriber
    * @param {Function} setter
-   * @return {Ak47Property}
+   * @return {MapProperty}
    */
   function subscribeTo(){
     var args          = arguments,
         harvest       = [],
         subscriptions = [],
         setter        = args.length < 3 ||  isObservable(args[ args.length - 2]) ? undef : args[ args.length - 1 ],
-        subscriber    = args[ args.length - ( setter ? 2 : args[args.length-1].extendsAk47Pubsub ? 0 : 1 ) ],
+        subscriber    = args[ args.length - ( setter ? 2 : args[args.length-1].extendsMapPubsub ? 0 : 1 ) ],
         batch         = true,
         proxy, callback, getter;
 
@@ -308,10 +308,10 @@ var ak47 = (function(undef, undefined){
         prop = to[i];
 
         harvest[ col + i ]       = undef;
-        subscriptions[ col + i ] = prop.isAK47Property ? prop : undef;
+        subscriptions[ col + i ] = prop.isMapProperty ? prop : undef;
 
         prop.subscribe({
-          isAk47Subscriber : true,
+          isMapSubscriber : true,
           callback         : callback,
           getter           : getter,
           setter           : setter,
@@ -337,11 +337,11 @@ var ak47 = (function(undef, undefined){
       callback = subscriber;
     }
 
-    proxy.harvest        = harvest;
-    proxy.isAK47Property = true;
-    proxy.isAK47Callback = true;
-    proxy.subscribeTo    = loop;
-    proxy.subscriptions  = subscriptions;
+    proxy.harvest       = harvest;
+    proxy.isMapProperty = true;
+    proxy.isMapCallback = true;
+    proxy.subscribeTo   = loop;
+    proxy.subscriptions = subscriptions;
 
     proxy.setter = function(){
       setter = arguments[0];
@@ -386,10 +386,10 @@ var ak47 = (function(undef, undefined){
     return false;
   }
 
-  return ak47;
+  return map;
 
 }());
 
 if(typeof module != 'undefined' && module.exports){
-  module.exports = ak47;
+  module.exports = map;
 }

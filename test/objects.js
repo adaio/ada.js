@@ -1,14 +1,14 @@
 var highkick = require('highkick'),
-    ak47     = require('./ak47'),
+    map     = require('./map'),
     assert   = require('assert');
 
 exports.testBasic = function(done){
-  var bike   = ak47({ model: 'giant', price: 1000 }),
-      car    = ak47({ model: 'peugeot', price: 30000 }),
-      garage = ak47({
+  var bike   = map({ model: 'giant', price: 1000 }),
+      car    = map({ model: 'peugeot', price: 30000 }),
+      garage = map({
         bike: bike,
         car: car,
-        wealth: ak47(bike.price, car.price, function(bikePrice, carPrice){
+        wealth: map(bike.price, car.price, function(bikePrice, carPrice){
           return bikePrice + carPrice;
         })
       });
@@ -31,11 +31,11 @@ exports.testBasic = function(done){
 
 exports.testHarvestAccumulation = function(done){
 
-  var bike   = ak47({ model: 'giant', price: undefined }),
-      car    = ak47({ model: 'peugeot', price: 30000 }),
-      house  = ak47({ district: 'oakland', price: 1000000 }),
+  var bike   = map({ model: 'giant', price: undefined }),
+      car    = map({ model: 'peugeot', price: 30000 }),
+      house  = map({ district: 'oakland', price: 1000000 }),
 
-      wealth = ak47(house.price, bike.price, car.price, function(housePrice, bikePrice, carPrice){
+      wealth = map(house.price, bike.price, car.price, function(housePrice, bikePrice, carPrice){
         return housePrice + ( bikePrice || 0 ) + carPrice;
       });
 
@@ -53,17 +53,17 @@ exports.testHarvestAccumulation = function(done){
 };
 
 exports.testHarvestChaining = function(done){
-  var bike   = ak47({ model: 'giant', price: undefined }),
-      car    = ak47({ model: 'peugeot', price: 30000 }),
-      house  = ak47({ district: 'oakland', price: 1000000 }),
-      garage = ak47({
+  var bike   = map({ model: 'giant', price: undefined }),
+      car    = map({ model: 'peugeot', price: 30000 }),
+      house  = map({ district: 'oakland', price: 1000000 }),
+      garage = map({
         bike: bike,
         car: car,
-        total: ak47(bike.price, car.price, function(bikePrice, carPrice){
+        total: map(bike.price, car.price, function(bikePrice, carPrice){
           return ( bikePrice || 0 ) + carPrice;
         })
       }),
-      wealth = ak47(house.price, garage.total, function(housePrice, garageTotal){
+      wealth = map(house.price, garage.total, function(housePrice, garageTotal){
         return ( housePrice || 0 ) + garageTotal;
       });
 
@@ -92,10 +92,10 @@ exports.testHarvestChaining = function(done){
 };
 
 exports.testObservingManualPublishes = function(done){
-  var number = ak47(3.14),
-      string = ak47('foo'),
-      array  = ak47([3.14, 156]),
-      bool = ak47(false);
+  var number = map(3.14),
+      string = map('foo'),
+      array  = map([3.14, 156]),
+      bool = map(false);
 
   assert.equal(number(), 3.14);
   assert.equal(string(), 'foo');
@@ -104,7 +104,7 @@ exports.testObservingManualPublishes = function(done){
   assert.deepEqual(array[1], 156);
   assert.equal(bool(), false);
 
-  ak47(number, string, array, bool, function(a, b, c, d){
+  map(number, string, array, bool, function(a, b, c, d){
     assert.equal(a, 156);
     assert.equal(b, 'bar');
     assert.deepEqual(c.length, 2);
@@ -129,17 +129,17 @@ exports.testSubscribingObservationTree = function(_done){
     if(done.q && done.r) _done();
   };
 
-  var n = ak47(10),
-      t = ak47(n, function(n){
+  var n = map(10),
+      t = map(n, function(n){
         return n * n;
       }),
-      k = ak47(n, function(n){
+      k = map(n, function(n){
         return n * 2;
       }),
-      q = ak47(t, k, function(t, k){
+      q = map(t, k, function(t, k){
         return t * t + k + k + 5;
       }),
-      r = ak47(q, function(q){
+      r = map(q, function(q){
         assert.equal(q, 650);
         return q / 10;
       });
@@ -160,9 +160,9 @@ exports.testSubscribingObservationTree = function(_done){
 };
 
 exports.testSubscribePubsub = function(done){
-  var n = ak47(10),
-      r = ak47(20),
-      onChange = ak47(n, r);
+  var n = map(10),
+      r = map(20),
+      onChange = map(n, r);
 
   onChange.subscribe(function(n, r){
     assert.equal(n, 300);
@@ -176,13 +176,13 @@ exports.testSubscribePubsub = function(done){
 };
 
 exports.testSubscribeToPubsub = function(done){
-  var n        = ak47(10),
-      r        = ak47(20),
-      onChange = ak47(n, r);
+  var n        = map(10),
+      r        = map(20),
+      onChange = map(n, r);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  ak47(onChange, function(n, r){
+  map(onChange, function(n, r){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     i == 1 && done();
@@ -198,15 +198,15 @@ exports.testSubscribeToPubsub = function(done){
 };
 
 exports.testSubscribeToPubsubs = function(done){
-  var n        = ak47(10),
-      r        = ak47(20),
-      onChange = ak47(n, r),
-      onFoo    = ak47.pubsub(),
-      onBar    = ak47.pubsub();
+  var n        = map(10),
+      r        = map(20),
+      onChange = map(n, r),
+      onFoo    = map.pubsub(),
+      onBar    = map.pubsub();
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  ak47(onChange, onFoo, onBar, function(n, r, foo, bar){
+  map(onChange, onFoo, onBar, function(n, r, foo, bar){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     assert.equal(foo, undefined);
@@ -226,12 +226,12 @@ exports.testSubscribeToPubsubs = function(done){
 
 exports.testObservingPubsubTree = function(done){
   var changed  = false,
-      n1       = ak47(10),
-      n2       = ak47(20),
-      onChange = ak47(n1, n2),
-      onFoo    = ak47(),
-      onBar    = ak47(),
-      sum      = ak47(onChange, onFoo, onBar, function(n1, n2, foo, bar){
+      n1       = map(10),
+      n2       = map(20),
+      onChange = map(n1, n2),
+      onFoo    = map(),
+      onBar    = map(),
+      sum      = map(onChange, onFoo, onBar, function(n1, n2, foo, bar){
 
         if(changed){
           assert.equal(n1, 20);
@@ -242,7 +242,7 @@ exports.testObservingPubsubTree = function(done){
 
         return n1 + n2;
       }),
-      sumPlus10 = ak47(sum, function(sum){
+      sumPlus10 = map(sum, function(sum){
         return sum + 10;
       });
 
@@ -263,7 +263,7 @@ exports.testObservingPubsubTree = function(done){
 exports.testDateObjects = function(done){
 
   var now = new Date,
-      date = ak47(now);
+      date = map(now);
 
   assert.equal(date(), now);
 
@@ -283,16 +283,16 @@ exports.testArray = function(done){
 
   var arr1 = [],
       arr2 = [],
-      foo = ak47({
+      foo = map({
         bar: arr1
       });
 
-  assert.equal(foo.bar.extendsAk47Pubsub, true);
+  assert.equal(foo.bar.extendsMapPubsub, true);
   assert.equal(foo.bar, arr1);
   assert.equal(foo.bar, arr1);
 
-  assert.equal(ak47(arr2), arr2);
-  assert.equal(arr2.extendsAk47Pubsub, true);
+  assert.equal(map(arr2), arr2);
+  assert.equal(arr2.extendsMapPubsub, true);
 
   done();
 };

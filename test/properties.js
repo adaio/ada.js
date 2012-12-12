@@ -1,5 +1,5 @@
 var highkick = require('highkick'),
-    ak47     = require('./ak47'),
+    map     = require('./map'),
     assert   = require('assert');
 
 function combat(){
@@ -12,7 +12,7 @@ function combat(){
 
 exports.testBasic = function(done){
 
-  var mybike = ak47(combat());
+  var mybike = map(combat());
 
   assert.equal(typeof mybike.color, 'function');
   assert.equal(mybike.color(), 'white');
@@ -32,7 +32,7 @@ exports.testMethods = function(done){
   var bike = combat();
   bike.foo = pi;
 
-  bike = ak47(bike);
+  bike = map(bike);
 
   assert.equal(bike.foo, pi);
   assert.equal(bike.foo(), pi());
@@ -48,17 +48,17 @@ exports.testMethods = function(done){
 exports.testGetterSetter = function(done){
 
   var bike = combat();
-  bike.color = ak47.property('white', function(color){
+  bike.color = map.property('white', function(color){
     return color.toUpperCase();
   });
 
   var oldPrice = undefined;
-  bike.price = ak47.property(1100, null, function(update, old){
+  bike.price = map.property(1100, null, function(update, old){
     assert.equal(old, oldPrice);
     return update * 100;
   });
 
-  var mybike = ak47(bike);
+  var mybike = map(bike);
 
   assert.equal(mybike.color.raw(), 'white');
   assert.equal(mybike.color(), 'WHITE');
@@ -84,7 +84,7 @@ exports.testGetterSetter = function(done){
 
 exports.testRaw = function(done){
 
-  var foo = ak47.property(500, function(f){ return f * 10; }, function(f){ return f / 2; });
+  var foo = map.property(500, function(f){ return f * 10; }, function(f){ return f / 2; });
 
   assert.equal(foo(), 2500);
   assert.equal(foo.raw(), 250);
@@ -101,8 +101,8 @@ exports.testRaw = function(done){
 
 exports.testPubsub = function(_done){
 
-  var mybike = ak47(combat());
-  mybike.price = ak47.property(1100, function(price){
+  var mybike = map(combat());
+  mybike.price = map.property(1100, function(price){
     return price * 10;
   });
 
@@ -149,8 +149,8 @@ exports.testPubsub = function(_done){
 
 exports.testSubscribeTo = function(done){
 
-  var foo = ak47(3),
-      bar = ak47(foo, function(f){
+  var foo = map(3),
+      bar = map(foo, function(f){
         assert(f == 14 || f == 24);
         return f * 10;
       });
@@ -167,7 +167,7 @@ exports.testSubscribeTo = function(done){
 
 exports.testSubscribeToBatching = function(done){
 
-  var mybike = ak47(combat()),
+  var mybike = map(combat()),
       values = [['red', 2000, 'foo'], ['blue', 2000, 'quux']],
       y = 0;
 
@@ -182,7 +182,7 @@ exports.testSubscribeToBatching = function(done){
     if(y==2) done();
   }
 
-  ak47(mybike.color, mybike.price, mybike.nickname, observer);
+  map(mybike.color, mybike.price, mybike.nickname, observer);
 
   mybike.nickname('foo');
   mybike.price(2000);
@@ -198,17 +198,17 @@ exports.testSubscribeToBatching = function(done){
 
 exports.testSubscribeToTree = function(done){
 
-  var foo = ak47(3),
+  var foo = map(3),
 
-      bar = ak47(foo, function(foo){
+      bar = map(foo, function(foo){
         return foo * 10;
       }),
 
-      qux = ak47(bar, function(bar){
+      qux = map(bar, function(bar){
         return bar * 2;
       }),
 
-      corge = ak47(qux, function(qux){
+      corge = map(qux, function(qux){
         return qux * 5;
       });
 
@@ -235,14 +235,14 @@ exports.testSubscribeToTree = function(done){
 
 
 exports.testSubscribeToWithSetter = function(done){
-  var foo = ak47(3),
-      bar = ak47(14),
+  var foo = map(3),
+      bar = map(14),
 
-      qux = ak47(foo, bar, function(foo, bar){
+      qux = map(foo, bar, function(foo, bar){
         return foo + bar;
       }, foo),
 
-      corge = ak47(qux, function(qux){
+      corge = map(qux, function(qux){
         return qux * 10;
       }, qux);
 
@@ -272,9 +272,9 @@ exports.testSubscribeToWithSetter = function(done){
 };
 
 exports.testPubsubSubscribesToProperties = function(done){
-  var n1 = ak47(3),
-      n2 = ak47(6),
-      onChange = ak47(n1, n2);
+  var n1 = map(3),
+      n2 = map(6),
+      onChange = map(n1, n2);
 
   onChange(function(n1, n2){
     assert.equal(n1, 30);
@@ -288,9 +288,9 @@ exports.testPubsubSubscribesToProperties = function(done){
 };
 
 exports.testPubsubSubscribesToSyncProperties = function(done){
-  var n1 = ak47(3),
-      n2 = ak47(6),
-      onChange = ak47(n1, n2).sync();
+  var n1 = map(3),
+      n2 = map(6),
+      onChange = map(n1, n2).sync();
 
   var n = [[30, 6], [30, 60]], i=0;
 
@@ -312,7 +312,7 @@ exports.testDate = function(done){
 
   mybike.date = date;
 
-  mybike = ak47(mybike);
+  mybike = map(mybike);
 
   assert.equal(mybike.date(), date);
 
@@ -326,8 +326,8 @@ exports.testFunction = function(done){
 
   function f(){ return 3.14; };
 
-  var foo = ak47(f),
-      bar = ak47.property(f);
+  var foo = map(f),
+      bar = map.property(f);
 
   assert.equal(foo(), 3.14);
   assert.equal(bar(), 3.14);
@@ -336,15 +336,15 @@ exports.testFunction = function(done){
 };
 
 exports.testCreateViaProxy = function(done){
-  var foo = ak47(3.14);
+  var foo = map(3.14);
   assert.equal(foo(), 3.14);
-  assert(foo.isAK47Property);
+  assert(foo.isMapProperty);
   done();
 };
 
 exports.testSkipSettingDefaultValue = function(done){
   var failed = false;
-  var foo = ak47(undefined, undefined, function(){
+  var foo = map(undefined, undefined, function(){
     failed = true;
     done(new Error('setter shouldnt have been called'));
   });

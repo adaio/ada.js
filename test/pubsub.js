@@ -1,10 +1,10 @@
 var highkick = require('highkick'),
-    ak47     = require('./ak47'),
+    map      = require('./map'),
     assert   = require('assert');
 
 exports.testSubscribe = function(_done){
 
-  var onfoo = ak47.pubsub(),
+  var onfoo = map.pubsub(),
       ab = [[3,1], [4, 1]],
       x = 0,
       y = 0;
@@ -37,7 +37,7 @@ exports.testSubscribe = function(_done){
 };
 
 exports.testUnsubscribe = function(done){
-  var onfoo = ak47.pubsub(), failed = false, calledOnce = false;
+  var onfoo = map.pubsub(), failed = false, calledOnce = false;
 
   function cb(){
     if(calledOnce){
@@ -62,10 +62,10 @@ exports.testUnsubscribe = function(done){
 };
 
 exports.testCreatingViaProxy = function(done){
-  var onfoo = ak47();
+  var onfoo = map();
 
   assert(onfoo.subscribe);
-  assert(onfoo.extendsAk47Pubsub);
+  assert(onfoo.extendsMapPubsub);
 
   onfoo(function(a, b, c){
     assert.equal(a, 3);
@@ -79,10 +79,10 @@ exports.testCreatingViaProxy = function(done){
 
 exports.testSyncPublishing = function(done){
 
-  var foo = ak47(3),
-      bar = ak47(14),
+  var foo = map(3),
+      bar = map(14),
 
-      qux = ak47(foo, bar, function(foo, bar){
+      qux = map(foo, bar, function(foo, bar){
         assert.deepEqual([foo, bar], expected[i]);
 
         return foo + bar;
@@ -101,7 +101,7 @@ exports.testSyncPublishing = function(done){
 
 exports.testErrorHandling = function(done){
 
-  var foo = ak47();
+  var foo = map();
 
   foo.subscribe(function(){
     var err = new Error;
@@ -109,7 +109,7 @@ exports.testErrorHandling = function(done){
     throw err;
   });
 
-  ak47(foo, function(){
+  map(foo, function(){
     var err = new Error;
     err.ignore = true;
     throw err;
@@ -124,9 +124,9 @@ exports.testErrorHandling = function(done){
 };
 
 exports.testHasCustomProxy = function(done){
-  var a = ak47.pubsub(),
-      b = ak47.pubsub(function(){}),
-      c = ak47.pubsub({});
+  var a = map.pubsub(),
+      b = map.pubsub(function(){}),
+      c = map.pubsub({});
 
   assert.equal(a.hasCustomProxy, false);
   assert.equal(b.hasCustomProxy, true);
@@ -137,10 +137,10 @@ exports.testHasCustomProxy = function(done){
 
 
 exports.testObservingManualPublishes = function(done){
-  var number = ak47(3.14),
-      string = ak47('foo'),
-      array  = ak47([3.14, 156]),
-      bool = ak47(false);
+  var number = map(3.14),
+      string = map('foo'),
+      array  = map([3.14, 156]),
+      bool = map(false);
 
   assert.equal(number(), 3.14);
   assert.equal(string(), 'foo');
@@ -149,7 +149,7 @@ exports.testObservingManualPublishes = function(done){
   assert.deepEqual(array[1], 156);
   assert.equal(bool(), false);
 
-  ak47(number, string, array, bool, function(a, b, c, d){
+  map(number, string, array, bool, function(a, b, c, d){
     assert.equal(a, 156);
     assert.equal(b, 'bar');
     assert.deepEqual(c.length, 2);
@@ -170,13 +170,13 @@ exports.testObservingManualPublishes = function(done){
 };
 
 exports.testSubscribeTo = function(done){
-  var n = ak47(10),
-      r = ak47(20),
-      q = ak47(30),
-      x = ak47(q, function(q){
+  var n = map(10),
+      r = map(20),
+      q = map(30),
+      x = map(q, function(q){
         return q * 2;
       }),
-      t = ak47(n, r, function(n, r, q, x){
+      t = map(n, r, function(n, r, q, x){
 
         assert.equal(n, 100);
         assert.equal(r, 200);
@@ -208,11 +208,11 @@ exports.testSubscribeTo = function(done){
 
 exports.testSubscribeToSetter = function(done){
 
-  var n = ak47(10),
-      p = ak47(n, function(n){
+  var n = map(10),
+      p = map(n, function(n){
         return n * n;
       }, setter),
-      q = ak47(n, function(n){
+      q = map(n, function(n){
         return n + n;
       }).setter(setter);
 
@@ -241,17 +241,17 @@ exports.testSubscribingObservationTree = function(_done){
     if(done.q && done.r) _done();
   };
 
-  var n = ak47(10),
-      t = ak47(n, function(n){
+  var n = map(10),
+      t = map(n, function(n){
         return n * n;
       }),
-      k = ak47(n, function(n){
+      k = map(n, function(n){
         return n * 2;
       }),
-      q = ak47(t, k, function(t, k){
+      q = map(t, k, function(t, k){
         return t * t + k + k + 5;
       }),
-      r = ak47(q, function(q){
+      r = map(q, function(q){
         assert.equal(q, 650);
         return q / 10;
       });
@@ -272,9 +272,9 @@ exports.testSubscribingObservationTree = function(_done){
 };
 
 exports.testSubscribePubsub = function(done){
-  var n = ak47(10),
-      r = ak47(20),
-      onChange = ak47(n, r);
+  var n = map(10),
+      r = map(20),
+      onChange = map(n, r);
 
   onChange.subscribe(function(n, r){
     assert.equal(n, 300);
@@ -288,14 +288,14 @@ exports.testSubscribePubsub = function(done){
 };
 
 exports.testSubscribeToPubsub = function(done){
-  var n        = ak47(10),
-      r        = ak47(20);
+  var n        = map(10),
+      r        = map(20);
 
-  var p = ak47(n, r);
+  var p = map(n, r);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  ak47(p, function(n, r){
+  map(p, function(n, r){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     i == 1 && done();
@@ -311,15 +311,15 @@ exports.testSubscribeToPubsub = function(done){
 };
 
 exports.testSubscribeToPubsubs = function(done){
-  var n        = ak47(10),
-      r        = ak47(20),
-      onChange = ak47(n, r),
-      onFoo    = ak47.pubsub(),
-      onBar    = ak47.pubsub();
+  var n        = map(10),
+      r        = map(20),
+      onChange = map(n, r),
+      onFoo    = map.pubsub(),
+      onBar    = map.pubsub();
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  ak47(onChange, onFoo, onBar, function(n, r, foo, bar){
+  map(onChange, onFoo, onBar, function(n, r, foo, bar){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     assert.equal(foo, undefined);
@@ -339,12 +339,12 @@ exports.testSubscribeToPubsubs = function(done){
 
 exports.testObservingPubsubTree = function(done){
   var changed  = false,
-      n1       = ak47(10),
-      n2       = ak47(20),
-      onChange = ak47(n1, n2),
-      onFoo    = ak47(),
-      onBar    = ak47(),
-      sum      = ak47(onChange, onFoo, onBar, function(n1, n2, foo, bar){
+      n1       = map(10),
+      n2       = map(20),
+      onChange = map(n1, n2),
+      onFoo    = map(),
+      onBar    = map(),
+      sum      = map(onChange, onFoo, onBar, function(n1, n2, foo, bar){
 
         if(changed){
           assert.equal(n1, 20);
@@ -355,7 +355,7 @@ exports.testObservingPubsubTree = function(done){
 
         return n1 + n2;
       }),
-      sumPlus10 = ak47(sum, function(sum){
+      sumPlus10 = map(sum, function(sum){
         return sum + 10;
       });
 
@@ -374,10 +374,10 @@ exports.testObservingPubsubTree = function(done){
 };
 
 exports.testEventCombination = function(done){
-  var foo = ak47(),
-      bar = ak47(),
-      qux = ak47(),
-      corge = ak47(foo, bar, qux);
+  var foo = map(),
+      bar = map(),
+      qux = map(),
+      corge = map(foo, bar, qux);
 
   corge.subscribe(function(foo, bar, qux){
     assert.equal(bar, 'bar');
@@ -396,10 +396,10 @@ exports.testEventCombinationWithMultipleArgs = function(done){
   console.warn('fix me: event combination with multiple args');
   return done();
 
-  var foo = ak47(),
-      bar = ak47(),
-      qux = ak47(),
-      corge = ak47(foo, bar, qux, ak47());
+  var foo = map(),
+      bar = map(),
+      qux = map(),
+      corge = map(foo, bar, qux, map());
 
   corge.subscribe(function(fo, o, bar, q, u, x){
     assert.equal(fo, 'fo');

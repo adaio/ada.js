@@ -71,7 +71,7 @@ function Person(firstName, lastName){
     return first + ' ' + last;
   });
 
-  obj.onChange = ak47(obj.firstName, obj.lastName, ak47());
+  obj.onChange = ak47(obj.firstName, obj.lastName);
 
   return obj;
 }
@@ -118,14 +118,22 @@ console.log( color.raw() ): // puts "red"
 Extending AK47's PubSub:
 
 ```js
-var foo = ak47.pubsub({});
+var foo = ak47();
 
-foo.subscribe(function(a, b, c){
+foo(function(a, b, c){
     console.log(a, b, c); // puts 3, 1, 4
 });
 
 foo.publish(3, 1, 4);
 ```
+
+```
+var onFoo = ak47.pubsub(),
+    onBar = ak47.pubsub(),
+    onAny = ak47(onFoo, onBar);
+
+```
+
 
 Creating a new PubSub Object:
 
