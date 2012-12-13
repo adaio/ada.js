@@ -1,14 +1,14 @@
 {
-  "name": "ak47",
-  "version": "0.0.9",
+  "name": "map",
+  "version": "0.0.1",
   "description": "A JavaScript Library For Creating Observable Classes",
   "author": "Azer Koculu <azer@kodfabrik.com>",
   "keywords": [
-    "classes",
-    "observable",
-    "events"
+    "bindings",
+    "events",
+    "properties"
   ],
-  "main": "./ak47",
+  "main": "./map",
   "repository": {
     "type": "git",
     "url": "http://github.com/azer/ak47.git"
