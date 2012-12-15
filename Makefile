@@ -1,24 +1,24 @@
 target=main
-module=map
+module=ada
 
 test:
 	@$(MAKE) link
 	@$(MAKE) kick
 
-min: map.js
-	@rm -f map.min.js
-	@./node_modules/.bin/uglifyjs -nm -o map.min.js map.js
+min: ada.js
+	@rm -f ada.min.js
+	@./node_modules/.bin/uglifyjs -nm -o ada.min.js ada.js
 	@$(MAKE) test-min
 
 link:
-	@rm -f test/map.js
-	@cd test && ln -s ../$(module).js map.js
+	@rm -f test/ada.js
+	@cd test && ln -s ../$(module).js ada.js
 
 kick:
 	@./node_modules/.bin/highkick test/$(target).js
 
 test-min:
-	@$(MAKE) link module=map.min
+	@$(MAKE) link module=ada.min
 	@$(MAKE) kick
 
 benchmark:

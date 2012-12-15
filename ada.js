@@ -1,6 +1,6 @@
-var map = (function(undef, undefined){
+var ada = (function(undef, undefined){
 
-  function map(){
+  function ada(){
     var args = Array.prototype.slice.call(arguments),
         fn;
 
@@ -16,10 +16,10 @@ var map = (function(undef, undefined){
     /**
      * shortcut to 'subscribeTo'
      *
-     * @param {MapProperty...} to
+     * @param {AdaProperty...} to
      * @param {Function} callback
      * @param {Function} setter <optional>
-     * @return {MapProperty}
+     * @return {AdaProperty}
      */
     } else if(args.length > 1 && args.slice(0, args.length - 2).every(isObservable) && typeof args[ args.length - 2 ] == 'function' && typeof args[ args.length - 1 ] == 'function'){
       fn = subscribeTo;
@@ -28,7 +28,7 @@ var map = (function(undef, undefined){
      * shortcut to 'pubsub'
      *
      * @param {Array}
-     * @return {MapPubsub}
+     * @return {AdaPubsub}
      */
     } else if(args.length == 1 && Array.isArray(args[0])) {
       fn = pubsub;
@@ -39,7 +39,7 @@ var map = (function(undef, undefined){
      * @param {Anything} <optional>
      * @param {Function} getter <optional>
      * @param {Function} setter <optional>
-     * @return {MapProperty}
+     * @return {AdaProperty}
      */
     } else if(args.length) {
       fn = property;
@@ -48,7 +48,7 @@ var map = (function(undef, undefined){
     /**
      * shortcut to 'pubsub'
      *
-     * @return {MapPubsub}
+     * @return {AdaPubsub}
      */
     } else {
       fn = pubsub;
@@ -57,9 +57,9 @@ var map = (function(undef, undefined){
     return fn.apply(undef, args);
   }
 
-  map.pubsub      = pubsub;
-  map.property    = property;
-  map.subscribeTo = subscribeTo;
+  ada.pubsub      = pubsub;
+  ada.property    = property;
+  ada.subscribeTo = subscribeTo;
 
   /**
    * Determine if given parameter is observable
@@ -68,11 +68,11 @@ var map = (function(undef, undefined){
    * @return {Boolean}
    */
   function isObservable(el){
-    return el && el.extendsMapPubsub;
+    return el && el.extendsAdaPubsub;
   }
 
   /**
-   * Clone given object by converting its content to map properties.
+   * Clone given object by converting its content to ada properties.
    * Pass property, names in "exceptions" to move properties without converting.
    *
    * @param {Object} raw
@@ -112,7 +112,7 @@ var map = (function(undef, undefined){
       /**
        * Callbacks subscribed via `subscribe` method.
        */
-      if( !cb.isMapSubscriber ){
+      if( !cb.isAdaSubscriber ){
 
         try {
           cb.callback.apply(undef, args);
@@ -125,10 +125,10 @@ var map = (function(undef, undefined){
 
       /**
        * Functions subscribed via `subscribeTo`
-       * (equivalent of map(properties..., function(){});
-       * are marked as mapSubscriber.
+       * (equivalent of ada(properties..., function(){});
+       * are marked as adaSubscriber.
        */
-      if(from.extendsMapPubsub && !from.hasCustomProxy && args.length > 1){
+      if(from.extendsAdaPubsub && !from.hasCustomProxy && args.length > 1){
         Array.prototype.splice.apply(cb.harvest, [cb.column, args.length].concat(args));
       } else {
         cb.harvest[cb.column] = args[0];
@@ -197,7 +197,7 @@ var map = (function(undef, undefined){
     proxy.subscribe         = sub;
     proxy.unsubscribe       = unsub;
     proxy.publish           = pub;
-    proxy.extendsMapPubsub = true;
+    proxy.extendsAdaPubsub = true;
     proxy.hasCustomProxy    = !!customProxy;
 
     return proxy;
@@ -209,7 +209,7 @@ var map = (function(undef, undefined){
    * @param {Anything} rawValue (optional)
    * @param {Function} getter (optional)
    * @param {Function} setter (optional)
-   * @return {MapProperty}
+   * @return {AdaProperty}
    */
   function property(rawValue, getter, setter){
     var value = undef,
@@ -246,7 +246,7 @@ var map = (function(undef, undefined){
 
     pubsub(proxy);
 
-    proxy.isMapProperty = true;
+    proxy.isAdaProperty = true;
     proxy.raw            = raw;
 
     proxy.publish = function publishProperty(){
@@ -274,16 +274,16 @@ var map = (function(undef, undefined){
    * Subscribe to all given properties
    *
    * @param {Property...} to
-   * @param {MapPubsub, Function} subscriber
+   * @param {AdaPubsub, Function} subscriber
    * @param {Function} setter
-   * @return {MapProperty}
+   * @return {AdaProperty}
    */
   function subscribeTo(){
     var args          = arguments,
         harvest       = [],
         subscriptions = [],
         setter        = args.length < 3 ||  isObservable(args[ args.length - 2]) ? undef : args[ args.length - 1 ],
-        subscriber    = args[ args.length - ( setter ? 2 : args[args.length-1].extendsMapPubsub ? 0 : 1 ) ],
+        subscriber    = args[ args.length - ( setter ? 2 : args[args.length-1].extendsAdaPubsub ? 0 : 1 ) ],
         batch         = true,
         proxy, callback, getter;
 
@@ -308,10 +308,10 @@ var map = (function(undef, undefined){
         prop = to[i];
 
         harvest[ col + i ]       = undef;
-        subscriptions[ col + i ] = prop.isMapProperty ? prop : undef;
+        subscriptions[ col + i ] = prop.isAdaProperty ? prop : undef;
 
         prop.subscribe({
-          isMapSubscriber : true,
+          isAdaSubscriber : true,
           callback         : callback,
           getter           : getter,
           setter           : setter,
@@ -338,8 +338,8 @@ var map = (function(undef, undefined){
     }
 
     proxy.harvest       = harvest;
-    proxy.isMapProperty = true;
-    proxy.isMapCallback = true;
+    proxy.isAdaProperty = true;
+    proxy.isAdaCallback = true;
     proxy.subscribeTo   = loop;
     proxy.subscriptions = subscriptions;
 
@@ -386,10 +386,10 @@ var map = (function(undef, undefined){
     return false;
   }
 
-  return map;
+  return ada;
 
 }());
 
 if(typeof module != 'undefined' && module.exports){
-  module.exports = map;
+  module.exports = ada;
 }

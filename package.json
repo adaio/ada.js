@@ -1,17 +1,17 @@
 {
-  "name": "map",
-  "version": "0.0.1",
-  "description": "A JavaScript Library For Creating Observable Classes",
+  "name": "ada",
+  "version": "0.0.0",
+  "description": "A lightweight bindings & pubsub and property library for JavaScript",
   "author": "Azer Koculu <azer@kodfabrik.com>",
   "keywords": [
     "bindings",
     "events",
     "properties"
   ],
-  "main": "./map",
+  "main": "./ada",
   "repository": {
     "type": "git",
-    "url": "http://github.com/azer/ak47.git"
+    "url": "http://github.com/azer/ada.git"
   },
   "devDependencies": {
     "highkick": "1.x",

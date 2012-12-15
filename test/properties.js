@@ -1,5 +1,5 @@
 var highkick = require('highkick'),
-    map     = require('./map'),
+    ada     = require('./ada'),
     assert   = require('assert');
 
 function combat(){
@@ -12,7 +12,7 @@ function combat(){
 
 exports.testBasic = function(done){
 
-  var mybike = map(combat());
+  var mybike = ada(combat());
 
   assert.equal(typeof mybike.color, 'function');
   assert.equal(mybike.color(), 'white');
@@ -32,7 +32,7 @@ exports.testMethods = function(done){
   var bike = combat();
   bike.foo = pi;
 
-  bike = map(bike);
+  bike = ada(bike);
 
   assert.equal(bike.foo, pi);
   assert.equal(bike.foo(), pi());
@@ -48,17 +48,17 @@ exports.testMethods = function(done){
 exports.testGetterSetter = function(done){
 
   var bike = combat();
-  bike.color = map.property('white', function(color){
+  bike.color = ada.property('white', function(color){
     return color.toUpperCase();
   });
 
   var oldPrice = undefined;
-  bike.price = map.property(1100, null, function(update, old){
+  bike.price = ada.property(1100, null, function(update, old){
     assert.equal(old, oldPrice);
     return update * 100;
   });
 
-  var mybike = map(bike);
+  var mybike = ada(bike);
 
   assert.equal(mybike.color.raw(), 'white');
   assert.equal(mybike.color(), 'WHITE');
@@ -84,7 +84,7 @@ exports.testGetterSetter = function(done){
 
 exports.testRaw = function(done){
 
-  var foo = map.property(500, function(f){ return f * 10; }, function(f){ return f / 2; });
+  var foo = ada.property(500, function(f){ return f * 10; }, function(f){ return f / 2; });
 
   assert.equal(foo(), 2500);
   assert.equal(foo.raw(), 250);
@@ -101,8 +101,8 @@ exports.testRaw = function(done){
 
 exports.testPubsub = function(_done){
 
-  var mybike = map(combat());
-  mybike.price = map.property(1100, function(price){
+  var mybike = ada(combat());
+  mybike.price = ada.property(1100, function(price){
     return price * 10;
   });
 
@@ -149,8 +149,8 @@ exports.testPubsub = function(_done){
 
 exports.testSubscribeTo = function(done){
 
-  var foo = map(3),
-      bar = map(foo, function(f){
+  var foo = ada(3),
+      bar = ada(foo, function(f){
         assert(f == 14 || f == 24);
         return f * 10;
       });
@@ -167,7 +167,7 @@ exports.testSubscribeTo = function(done){
 
 exports.testSubscribeToBatching = function(done){
 
-  var mybike = map(combat()),
+  var mybike = ada(combat()),
       values = [['red', 2000, 'foo'], ['blue', 2000, 'quux']],
       y = 0;
 
@@ -182,7 +182,7 @@ exports.testSubscribeToBatching = function(done){
     if(y==2) done();
   }
 
-  map(mybike.color, mybike.price, mybike.nickname, observer);
+  ada(mybike.color, mybike.price, mybike.nickname, observer);
 
   mybike.nickname('foo');
   mybike.price(2000);
@@ -198,17 +198,17 @@ exports.testSubscribeToBatching = function(done){
 
 exports.testSubscribeToTree = function(done){
 
-  var foo = map(3),
+  var foo = ada(3),
 
-      bar = map(foo, function(foo){
+      bar = ada(foo, function(foo){
         return foo * 10;
       }),
 
-      qux = map(bar, function(bar){
+      qux = ada(bar, function(bar){
         return bar * 2;
       }),
 
-      corge = map(qux, function(qux){
+      corge = ada(qux, function(qux){
         return qux * 5;
       });
 
@@ -235,14 +235,14 @@ exports.testSubscribeToTree = function(done){
 
 
 exports.testSubscribeToWithSetter = function(done){
-  var foo = map(3),
-      bar = map(14),
+  var foo = ada(3),
+      bar = ada(14),
 
-      qux = map(foo, bar, function(foo, bar){
+      qux = ada(foo, bar, function(foo, bar){
         return foo + bar;
       }, foo),
 
-      corge = map(qux, function(qux){
+      corge = ada(qux, function(qux){
         return qux * 10;
       }, qux);
 
@@ -272,9 +272,9 @@ exports.testSubscribeToWithSetter = function(done){
 };
 
 exports.testPubsubSubscribesToProperties = function(done){
-  var n1 = map(3),
-      n2 = map(6),
-      onChange = map(n1, n2);
+  var n1 = ada(3),
+      n2 = ada(6),
+      onChange = ada(n1, n2);
 
   onChange(function(n1, n2){
     assert.equal(n1, 30);
@@ -288,9 +288,9 @@ exports.testPubsubSubscribesToProperties = function(done){
 };
 
 exports.testPubsubSubscribesToSyncProperties = function(done){
-  var n1 = map(3),
-      n2 = map(6),
-      onChange = map(n1, n2).sync();
+  var n1 = ada(3),
+      n2 = ada(6),
+      onChange = ada(n1, n2).sync();
 
   var n = [[30, 6], [30, 60]], i=0;
 
@@ -312,7 +312,7 @@ exports.testDate = function(done){
 
   mybike.date = date;
 
-  mybike = map(mybike);
+  mybike = ada(mybike);
 
   assert.equal(mybike.date(), date);
 
@@ -326,8 +326,8 @@ exports.testFunction = function(done){
 
   function f(){ return 3.14; };
 
-  var foo = map(f),
-      bar = map.property(f);
+  var foo = ada(f),
+      bar = ada.property(f);
 
   assert.equal(foo(), 3.14);
   assert.equal(bar(), 3.14);
@@ -336,15 +336,15 @@ exports.testFunction = function(done){
 };
 
 exports.testCreateViaProxy = function(done){
-  var foo = map(3.14);
+  var foo = ada(3.14);
   assert.equal(foo(), 3.14);
-  assert(foo.isMapProperty);
+  assert(foo.isAdaProperty);
   done();
 };
 
 exports.testSkipSettingDefaultValue = function(done){
   var failed = false;
-  var foo = map(undefined, undefined, function(){
+  var foo = ada(undefined, undefined, function(){
     failed = true;
     done(new Error('setter shouldnt have been called'));
   });

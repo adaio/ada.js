@@ -1,15 +1,15 @@
-Ak47 is a lightweight JavaScript library for defining observable properties that can interact with eachother. See examples and the code itself for documentation.
+ada is a lightweight JavaScript library for defining observable properties that can interact with eachother. See examples and the code itself for documentation.
 
 * Example App: http://jsfiddle.net/azer/AC6GL
 * Performance Comparison with Backbone and Ember: http://jsfiddle.net/azer/TaADd/
-* OOP W/ AK47: https://gist.github.com/4136102
+* OOP W/ ada: https://gist.github.com/4136102
 
 ![](https://pbs.twimg.com/media/A4QpVg8CcAAALMY.jpg)
 
 # INSTALL
 
 ```bash
-npm install ak47 # or wget https://raw.github.com/azer/ak47/master/ak47.min.js
+npm install ada # or wget https://raw.github.com/azer/ada/master/ada.min.js
 ```
 
 # USAGE EXAMPLES
@@ -17,9 +17,9 @@ npm install ak47 # or wget https://raw.github.com/azer/ak47/master/ak47.min.js
 The simpliest usage would be:
 
 ```js
-> var greeting = ak47('Hello'),
-      name     = ak47('Kitty'),
-      message  = ak47(greeting, name, function(greeting, name){ // or: ak47.subscribeTo( ...
+> var greeting = ada('Hello'),
+      name     = ada('Kitty'),
+      message  = ada(greeting, name, function(greeting, name){ // or: ada.subscribeTo( ...
         return greeting + ' ' + name + '!';
       });
 
@@ -40,10 +40,10 @@ Hi Azer!
 ## Objects
 
 ```javascript
-var bike  = ak47({ model: 'giant', price: 1000 }),
-    car   = ak47({ model: 'peugeot', price: 10000 }),
+var bike  = ada({ model: 'giant', price: 1000 }),
+    car   = ada({ model: 'peugeot', price: 10000 }),
 
-    total = ak47(bike.price, car.price, function(bikePrice, carPrice){ // gets called when bike.price and/or car.price are updated
+    total = ada(bike.price, car.price, function(bikePrice, carPrice){ // gets called when bike.price and/or car.price are updated
         return bikePrice + carPrice;
     });
 
@@ -62,16 +62,16 @@ bike.price(5000);
 ```js
 
 function Person(firstName, lastName){
-  var obj = ak47({
+  var obj = ada({
     firstName: firstName,
     lastName: lastName
   });
 
-  obj.fullName = ak47(obj.firstName, obj.lastName, function(first, last){
+  obj.fullName = ada(obj.firstName, obj.lastName, function(first, last){
     return first + ' ' + last;
   });
 
-  obj.onChange = ak47(obj.firstName, obj.lastName);
+  obj.onChange = ada(obj.firstName, obj.lastName);
 
   return obj;
 }
@@ -102,7 +102,7 @@ function setter(newValue, oldValue){
     return '~' + newValue;
 }
 
-var color = ak47.property('white', getter, setter);
+var color = ada.property('white', getter, setter);
 
 console.log( color() ); // puts "~WHITE"
 
@@ -115,10 +115,10 @@ console.log( color.raw() ): // puts "red"
 
 ## PubSub
 
-Extending AK47's PubSub:
+Extending ada's PubSub:
 
 ```js
-var foo = ak47();
+var foo = ada();
 
 foo(function(a, b, c){
     console.log(a, b, c); // puts 3, 1, 4
@@ -128,9 +128,9 @@ foo.publish(3, 1, 4);
 ```
 
 ```
-var onFoo = ak47.pubsub(),
-    onBar = ak47.pubsub(),
-    onAny = ak47(onFoo, onBar);
+var onFoo = ada.pubsub(),
+    onBar = ada.pubsub(),
+    onAny = ada(onFoo, onBar);
 
 ```
 
@@ -138,7 +138,7 @@ var onFoo = ak47.pubsub(),
 Creating a new PubSub Object:
 
 ```js
-var bar = ak47.pubsub(); // or ak47();
+var bar = ada.pubsub(); // or ada();
 
 bar(function(a, b, c){ // or bar.subscribe(function ..
   console.log(a, b, c); // puts 3, 1, 4
@@ -150,7 +150,7 @@ bar.publish(3, 1, 4);
 ## Observing Arrays
 
 ```js
-var fibs = ak47([0, 1, 1, 2, 3, 5]);
+var fibs = ada([0, 1, 1, 2, 3, 5]);
 
 console.log(fibs); // puts [0, 1, 1, 2, 3, 5]
 
@@ -166,7 +166,7 @@ fibs.publish('publishing', 'manually');
 
 ```js
 
-var pi = ak47(3.14);
+var pi = ada(3.14);
 
 pi.subscribe(function(update, old){
   console.log(update, old); // puts 3.14156, 3.14

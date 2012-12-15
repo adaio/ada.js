@@ -1,10 +1,10 @@
 var highkick = require('highkick'),
-    map      = require('./map'),
+    ada      = require('./ada'),
     assert   = require('assert');
 
 exports.testSubscribe = function(_done){
 
-  var onfoo = map.pubsub(),
+  var onfoo = ada.pubsub(),
       ab = [[3,1], [4, 1]],
       x = 0,
       y = 0;
@@ -37,7 +37,7 @@ exports.testSubscribe = function(_done){
 };
 
 exports.testUnsubscribe = function(done){
-  var onfoo = map.pubsub(), failed = false, calledOnce = false;
+  var onfoo = ada.pubsub(), failed = false, calledOnce = false;
 
   function cb(){
     if(calledOnce){
@@ -62,10 +62,10 @@ exports.testUnsubscribe = function(done){
 };
 
 exports.testCreatingViaProxy = function(done){
-  var onfoo = map();
+  var onfoo = ada();
 
   assert(onfoo.subscribe);
-  assert(onfoo.extendsMapPubsub);
+  assert(onfoo.extendsAdaPubsub);
 
   onfoo(function(a, b, c){
     assert.equal(a, 3);
@@ -79,10 +79,10 @@ exports.testCreatingViaProxy = function(done){
 
 exports.testSyncPublishing = function(done){
 
-  var foo = map(3),
-      bar = map(14),
+  var foo = ada(3),
+      bar = ada(14),
 
-      qux = map(foo, bar, function(foo, bar){
+      qux = ada(foo, bar, function(foo, bar){
         assert.deepEqual([foo, bar], expected[i]);
 
         return foo + bar;
@@ -101,7 +101,7 @@ exports.testSyncPublishing = function(done){
 
 exports.testErrorHandling = function(done){
 
-  var foo = map();
+  var foo = ada();
 
   foo.subscribe(function(){
     var err = new Error;
@@ -109,7 +109,7 @@ exports.testErrorHandling = function(done){
     throw err;
   });
 
-  map(foo, function(){
+  ada(foo, function(){
     var err = new Error;
     err.ignore = true;
     throw err;
@@ -124,9 +124,9 @@ exports.testErrorHandling = function(done){
 };
 
 exports.testHasCustomProxy = function(done){
-  var a = map.pubsub(),
-      b = map.pubsub(function(){}),
-      c = map.pubsub({});
+  var a = ada.pubsub(),
+      b = ada.pubsub(function(){}),
+      c = ada.pubsub({});
 
   assert.equal(a.hasCustomProxy, false);
   assert.equal(b.hasCustomProxy, true);
@@ -137,10 +137,10 @@ exports.testHasCustomProxy = function(done){
 
 
 exports.testObservingManualPublishes = function(done){
-  var number = map(3.14),
-      string = map('foo'),
-      array  = map([3.14, 156]),
-      bool = map(false);
+  var number = ada(3.14),
+      string = ada('foo'),
+      array  = ada([3.14, 156]),
+      bool = ada(false);
 
   assert.equal(number(), 3.14);
   assert.equal(string(), 'foo');
@@ -149,7 +149,7 @@ exports.testObservingManualPublishes = function(done){
   assert.deepEqual(array[1], 156);
   assert.equal(bool(), false);
 
-  map(number, string, array, bool, function(a, b, c, d){
+  ada(number, string, array, bool, function(a, b, c, d){
     assert.equal(a, 156);
     assert.equal(b, 'bar');
     assert.deepEqual(c.length, 2);
@@ -170,13 +170,13 @@ exports.testObservingManualPublishes = function(done){
 };
 
 exports.testSubscribeTo = function(done){
-  var n = map(10),
-      r = map(20),
-      q = map(30),
-      x = map(q, function(q){
+  var n = ada(10),
+      r = ada(20),
+      q = ada(30),
+      x = ada(q, function(q){
         return q * 2;
       }),
-      t = map(n, r, function(n, r, q, x){
+      t = ada(n, r, function(n, r, q, x){
 
         assert.equal(n, 100);
         assert.equal(r, 200);
@@ -208,11 +208,11 @@ exports.testSubscribeTo = function(done){
 
 exports.testSubscribeToSetter = function(done){
 
-  var n = map(10),
-      p = map(n, function(n){
+  var n = ada(10),
+      p = ada(n, function(n){
         return n * n;
       }, setter),
-      q = map(n, function(n){
+      q = ada(n, function(n){
         return n + n;
       }).setter(setter);
 
@@ -241,17 +241,17 @@ exports.testSubscribingObservationTree = function(_done){
     if(done.q && done.r) _done();
   };
 
-  var n = map(10),
-      t = map(n, function(n){
+  var n = ada(10),
+      t = ada(n, function(n){
         return n * n;
       }),
-      k = map(n, function(n){
+      k = ada(n, function(n){
         return n * 2;
       }),
-      q = map(t, k, function(t, k){
+      q = ada(t, k, function(t, k){
         return t * t + k + k + 5;
       }),
-      r = map(q, function(q){
+      r = ada(q, function(q){
         assert.equal(q, 650);
         return q / 10;
       });
@@ -272,9 +272,9 @@ exports.testSubscribingObservationTree = function(_done){
 };
 
 exports.testSubscribePubsub = function(done){
-  var n = map(10),
-      r = map(20),
-      onChange = map(n, r);
+  var n = ada(10),
+      r = ada(20),
+      onChange = ada(n, r);
 
   onChange.subscribe(function(n, r){
     assert.equal(n, 300);
@@ -288,14 +288,14 @@ exports.testSubscribePubsub = function(done){
 };
 
 exports.testSubscribeToPubsub = function(done){
-  var n        = map(10),
-      r        = map(20);
+  var n        = ada(10),
+      r        = ada(20);
 
-  var p = map(n, r);
+  var p = ada(n, r);
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  map(p, function(n, r){
+  ada(p, function(n, r){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     i == 1 && done();
@@ -311,15 +311,15 @@ exports.testSubscribeToPubsub = function(done){
 };
 
 exports.testSubscribeToPubsubs = function(done){
-  var n        = map(10),
-      r        = map(20),
-      onChange = map(n, r),
-      onFoo    = map.pubsub(),
-      onBar    = map.pubsub();
+  var n        = ada(10),
+      r        = ada(20),
+      onChange = ada(n, r),
+      onFoo    = ada.pubsub(),
+      onBar    = ada.pubsub();
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  map(onChange, onFoo, onBar, function(n, r, foo, bar){
+  ada(onChange, onFoo, onBar, function(n, r, foo, bar){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     assert.equal(foo, undefined);
@@ -339,12 +339,12 @@ exports.testSubscribeToPubsubs = function(done){
 
 exports.testObservingPubsubTree = function(done){
   var changed  = false,
-      n1       = map(10),
-      n2       = map(20),
-      onChange = map(n1, n2),
-      onFoo    = map(),
-      onBar    = map(),
-      sum      = map(onChange, onFoo, onBar, function(n1, n2, foo, bar){
+      n1       = ada(10),
+      n2       = ada(20),
+      onChange = ada(n1, n2),
+      onFoo    = ada(),
+      onBar    = ada(),
+      sum      = ada(onChange, onFoo, onBar, function(n1, n2, foo, bar){
 
         if(changed){
           assert.equal(n1, 20);
@@ -355,7 +355,7 @@ exports.testObservingPubsubTree = function(done){
 
         return n1 + n2;
       }),
-      sumPlus10 = map(sum, function(sum){
+      sumPlus10 = ada(sum, function(sum){
         return sum + 10;
       });
 
@@ -374,10 +374,10 @@ exports.testObservingPubsubTree = function(done){
 };
 
 exports.testEventCombination = function(done){
-  var foo = map(),
-      bar = map(),
-      qux = map(),
-      corge = map(foo, bar, qux);
+  var foo = ada(),
+      bar = ada(),
+      qux = ada(),
+      corge = ada(foo, bar, qux);
 
   corge.subscribe(function(foo, bar, qux){
     assert.equal(bar, 'bar');
@@ -396,10 +396,10 @@ exports.testEventCombinationWithMultipleArgs = function(done){
   console.warn('fix me: event combination with multiple args');
   return done();
 
-  var foo = map(),
-      bar = map(),
-      qux = map(),
-      corge = map(foo, bar, qux, map());
+  var foo = ada(),
+      bar = ada(),
+      qux = ada(),
+      corge = ada(foo, bar, qux, ada());
 
   corge.subscribe(function(fo, o, bar, q, u, x){
     assert.equal(fo, 'fo');
