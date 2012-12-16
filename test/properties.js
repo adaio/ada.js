@@ -374,3 +374,20 @@ exports.testNull = function(done){
   assert.equal(on.n(), null);
   done();
 };
+
+exports.testSkipPublishingTo = function(done){
+  var foo = ada.property();
+
+  function shouldBeCalled(){
+    done();
+  }
+
+  function shouldNotBeCalled(){
+    throw new Error('this subscriber should ve been skipped!!');
+  }
+
+  foo.subscribe(shouldNotBeCalled);
+  foo.subscribe(shouldBeCalled);
+
+  foo(314, { skipPublishingTo: shouldNotBeCalled });
+};

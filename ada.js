@@ -98,17 +98,28 @@ var ada = (function(undef, undefined){
   /**
    * Publish "from" by applying given args
    *
-   * @param {Pubsub} from
+   * @param {Object, Function} options, from
    * @param {...Any} args
    */
-  function publish(from){
-    if(from && from.subscribers && from.subscribers.length == 0) return;
+  function publish(options){
+    var from;
+
+    if(options.from){
+      from = options.from;
+    } else {
+      from = options;
+      options = {};
+    }
+
+    if(from && from.subscribers && from.subscribers.length == 0) {
+      return;
+    }
 
     var args = Array.prototype.slice.call(arguments, 1),
         newValue, oldValue;
 
     from.subscribers.forEach(function(cb, i){
-      if( !cb || typeof cb.callback != 'function' ) return;
+      if( !cb || typeof cb.callback != 'function' || cb.callback == options.skipPublishingTo ) return;
 
       /**
        * Callbacks subscribed via `subscribe` method.
@@ -240,7 +251,7 @@ var ada = (function(undef, undefined){
       var old = !(options && options.skipPublishing) ? get() : undef;
       value = setter ? setter(update, value) : update;
 
-      !(options && options.skipPublishing) && publish(proxy, get(), old);
+      !(options && options.skipPublishing) && publish({ from: proxy, skipPublishingTo: options && options.skipPublishingTo }, get(), old);
 
       return value;
     }
