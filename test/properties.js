@@ -148,7 +148,6 @@ exports.testPubsub = function(_done){
 };
 
 exports.testSubscribeTo = function(done){
-
   var foo = ada(3),
       bar = ada(foo, function(f){
         assert(f == 14 || f == 24);
@@ -163,6 +162,21 @@ exports.testSubscribeTo = function(done){
 
   done();
 
+};
+
+exports.testUnsubscribeTo = function(done){
+  var foo = ada(3),
+      bar = ada(4);
+
+  function cb(){};
+
+  ada.subscribeTo(foo, bar, cb);
+  ada.unsubscribeTo(foo, bar, cb);
+
+  assert(foo.subscribers.every(function(el){ return el == null; }));
+  assert(foo.subscribers.every(function(el){ return el == null; }));
+
+  done();
 };
 
 exports.testSubscribeToBatching = function(done){
@@ -350,5 +364,13 @@ exports.testSkipSettingDefaultValue = function(done){
   });
 
   !failed && done();
+};
 
+exports.testNull = function(done){
+  var n = ada(null),
+      on = ada({ n: null });
+
+  assert.equal(n(), null);
+  assert.equal(on.n(), null);
+  done();
 };

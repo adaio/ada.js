@@ -10,7 +10,7 @@ var ada = (function(undef, undefined){
      * @param {Object}
      * @return {Object}
      */
-    if( (args.length == 1 || Array.isArray(args[1]) ) && typeof args[0] == 'object' && args[0].constructor == Object){
+    if( (args.length == 1 || Array.isArray(args[1]) ) && args[0] && typeof args[0] == 'object' && args[0].constructor == Object){
       fn = newObject;
 
     /**
@@ -57,9 +57,10 @@ var ada = (function(undef, undefined){
     return fn.apply(undef, args);
   }
 
-  ada.pubsub      = pubsub;
-  ada.property    = property;
-  ada.subscribeTo = subscribeTo;
+  ada.pubsub        = pubsub;
+  ada.property      = property;
+  ada.subscribeTo   = subscribeTo;
+  ada.unsubscribeTo = unsubscribeTo;
 
   /**
    * Determine if given parameter is observable
@@ -85,7 +86,7 @@ var ada = (function(undef, undefined){
     for(key in raw){
       val = raw[key];
       obj[key] = ( !Array.isArray(exceptions) || exceptions.indexOf(key) == -1 )
-        && ( typeof val != 'object' || val.constructor != Object )
+        && ( typeof val != 'object' || !val || val.constructor != Object )
         && ( typeof val != 'function' )
         ? ( Array.isArray(val) && pubsub || property) (val)
         : val;
@@ -219,9 +220,9 @@ var ada = (function(undef, undefined){
       return getter ? getter(value) : value;
     }
 
-    function propertyProxy(update){
+    function propertyProxy(update, options){
       if( arguments.length > 0 ){
-        set(update);
+        set(update, options);
       }
 
       return get();
@@ -377,13 +378,32 @@ var ada = (function(undef, undefined){
 
     while(i--){
       if(to.subscribers[i] && to.subscribers[i].callback == callback){
-        to.subscribers[i] = undef;
+        to.subscribers[i] = null;
 
         return i;
       }
     }
 
     return false;
+  }
+
+  /**
+   * Unsubscribe to all given properties
+   * @param {Property...} to
+   * @param {AdaPubsub, Function} subscriber
+   * @return {Boolean}
+   */
+  function unsubscribeTo(){
+    var to         = Array.prototype.slice.call(arguments, 0, arguments.length - 1),
+        subscriber = arguments[arguments.length - 1],
+        result     = false;
+
+    var i = to.length;
+    while(i--){
+      result = unsubscribe(to[i], subscriber) || result;
+    }
+
+    return result;
   }
 
   return ada;
