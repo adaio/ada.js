@@ -149,7 +149,7 @@ exports.testObservingManualPublishes = function(done){
   assert.deepEqual(array[1], 156);
   assert.equal(bool(), false);
 
-  ada(number, string, array, bool, function(a, b, c, d){
+  var o = ada(number, string, array, bool, function(a, b, c, d){
     assert.equal(a, 156);
     assert.equal(b, 'bar');
     assert.deepEqual(c.length, 2);
@@ -319,7 +319,7 @@ exports.testSubscribeToPubsubs = function(done){
 
   var expected = [[10, 200], [600, 200]], i = 0;
 
-  ada(onChange, onFoo, onBar, function(n, r, foo, bar){
+  var q = ada(onChange, onFoo, onBar, function(n, r, foo, bar){
     assert.equal(n, expected[i][0]);
     assert.equal(r, expected[i][1]);
     assert.equal(foo, undefined);
@@ -344,8 +344,7 @@ exports.testObservingPubsubTree = function(done){
       onChange = ada(n1, n2),
       onFoo    = ada(),
       onBar    = ada(),
-      sum      = ada(onChange, onFoo, onBar, function(n1, n2, foo, bar){
-
+      sum      = ada(onFoo, onChange, onBar, function(foo, n1, n2, bar){
         if(changed){
           assert.equal(n1, 20);
           assert.equal(n2, 30);

@@ -391,3 +391,30 @@ exports.testSkipPublishingTo = function(done){
 
   foo(314, { skipPublishingTo: shouldNotBeCalled });
 };
+
+exports.testChanged = function(done){
+  var foo = ada(3),
+      bar = ada(4),
+      qux = ada(foo, bar, function(foo, bar, changed){
+        assert.deepEqual(changed, { 0: 0, isAdaChangeList: true });
+        return foo + bar + 10;
+      }),
+      quux = ada(5),
+      span = ada(9),
+      corge = ada(qux, quux, span, function(qux, quux, span, changed){
+        if(first){
+          assert.deepEqual(changed, { 0: 2, 1: 0, isAdaChangeList: true });
+          first = false;
+        } else {
+          assert.deepEqual(changed, { 0: 1, isAdaChangeList: true });
+          done();
+        }
+        return qux + quux;
+      }),
+      first = true;
+
+  foo(7);
+  span(10);
+
+  setTimeout(function(){ quux(100); }, 250);
+};

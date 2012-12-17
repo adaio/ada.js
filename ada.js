@@ -118,6 +118,10 @@ var ada = (function(undef, undefined){
     var args = Array.prototype.slice.call(arguments, 1),
         newValue, oldValue;
 
+    if(args[args.length - 1] && args[args.length - 1].isAdaChangeList){
+      args = args.slice(0, args.length - 1);
+    }
+
     from.subscribers.forEach(function(cb, i){
       if( !cb || typeof cb.callback != 'function' || cb.callback == options.skipPublishingTo ) return;
 
@@ -144,6 +148,8 @@ var ada = (function(undef, undefined){
         Array.prototype.splice.apply(cb.harvest, [cb.column, args.length].concat(args));
       } else {
         cb.harvest[cb.column] = args[0];
+        !cb.harvest.changed && ( cb.harvest.changed = [], cb.harvest.changed.isAdaChangeList = true );
+        cb.harvest.changed.push(cb.column);
       }
 
       oldValue = cb.harvest.value;
@@ -168,12 +174,31 @@ var ada = (function(undef, undefined){
       cb.harvest.call = setTimeout(function(){
         cb.harvest.sync();
 
+        var params = cb.harvest, passChangedList = true, i, sub;
+        if(cb.harvest.changed){
+          i = cb.pubsub.subscriptions.length;
+
+          while( i-->0 ){
+            sub = cb.pubsub.subscriptions[i];
+            if(sub && sub.extendsAdaPubsub && !sub.hasCustomProxy){
+              passChangedList = false;
+              break;
+            }
+          }
+
+          if(passChangedList){
+            params = params.slice();
+            params.push(cb.harvest.changed);
+            cb.harvest.changed = undefined;
+          }
+        }
+
         if(cb.getter){
-          newValue = cb.harvest.value = cb.getter.apply(undef, cb.harvest);
+          newValue = cb.harvest.value = cb.getter.apply(undef, params);
           cb.harvest.call = undef;
           cb.pubsub.publish(newValue, oldValue);
         } else {
-          cb.pubsub.publish.apply(undef, cb.harvest);
+          cb.pubsub.publish.apply(undef, params);
         }
       }, 0);
 
@@ -205,12 +230,12 @@ var ada = (function(undef, undefined){
       publish.apply(undef, args);
     }
 
-    proxy.subscribers       = [];
-    proxy.subscribe         = sub;
-    proxy.unsubscribe       = unsub;
-    proxy.publish           = pub;
+    proxy.subscribers      = [];
+    proxy.subscribe        = sub;
+    proxy.unsubscribe      = unsub;
+    proxy.publish          = pub;
     proxy.extendsAdaPubsub = true;
-    proxy.hasCustomProxy    = !!customProxy;
+    proxy.hasCustomProxy   = !!customProxy;
 
     return proxy;
   }
@@ -323,7 +348,7 @@ var ada = (function(undef, undefined){
         subscriptions[ col + i ] = prop.isAdaProperty ? prop : undef;
 
         prop.subscribe({
-          isAdaSubscriber : true,
+          isAdaSubscriber  : true,
           callback         : callback,
           getter           : getter,
           setter           : setter,
@@ -332,6 +357,7 @@ var ada = (function(undef, undefined){
           column           : col + i,
           batch            : toBatch
         });
+
       }
     }
 
