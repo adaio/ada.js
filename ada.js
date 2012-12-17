@@ -345,7 +345,7 @@ var ada = (function(undef, undefined){
         prop = to[i];
 
         harvest[ col + i ]       = undef;
-        subscriptions[ col + i ] = prop.isAdaProperty ? prop : undef;
+        subscriptions[ col + i ] = prop;
 
         prop.subscribe({
           isAdaSubscriber  : true,
@@ -361,25 +361,34 @@ var ada = (function(undef, undefined){
       }
     }
 
+    function unsubscribeToAll(){
+      var i = subscriptions.length;
+      while( i --> 0 ){
+        unsubscribe(subscriptions[i], getter);
+        subscriptions[i] = null;
+      }
+    }
+
     function toBatch(){
       return batch;
     }
 
     if (!subscriber) {
-      proxy = pubsub();
-      getter = undef;
+      proxy    = pubsub();
+      getter   = undef;
       callback = proxy.publish;
     } else {
-      proxy = pubsub(accessor);
-      getter = subscriber;
+      proxy    = pubsub(accessor);
+      getter   = subscriber;
       callback = subscriber;
     }
 
-    proxy.harvest       = harvest;
-    proxy.isAdaProperty = true;
-    proxy.isAdaCallback = true;
-    proxy.subscribeTo   = loop;
-    proxy.subscriptions = subscriptions;
+    proxy.harvest          = harvest;
+    proxy.isAdaProperty    = true;
+    proxy.isAdaCallback    = true;
+    proxy.subscribeTo      = loop;
+    proxy.subscriptions    = subscriptions;
+    proxy.unsubscribeToAll = unsubscribeToAll;
 
     proxy.setter = function(){
       setter = arguments[0];

@@ -168,13 +168,42 @@ exports.testUnsubscribeTo = function(done){
   var foo = ada(3),
       bar = ada(4);
 
-  function cb(){};
+  function cb(){
+    throw new Error('callback shouldnt have been called');
+  };
 
   ada.subscribeTo(foo, bar, cb);
   ada.unsubscribeTo(foo, bar, cb);
 
   assert(foo.subscribers.every(function(el){ return el == null; }));
+  assert(bar.subscribers.every(function(el){ return el == null; }));
+
+  foo(5);
+  bar(6);
+
+  done();
+};
+
+exports.testUnsubscribeToAll = function(done){
+  var foo = ada(3),
+      bar = ada(4),
+      qux = ada(5);
+
+  function cb(){
+    throw new Error('callback shouldnt have been called');
+  };
+
+  var a = ada(foo, bar, qux, cb);
+
+  a.unsubscribeToAll();
+
   assert(foo.subscribers.every(function(el){ return el == null; }));
+  assert(bar.subscribers.every(function(el){ return el == null; }));
+  assert(qux.subscribers.every(function(el){ return el == null; }));
+
+  foo(5);
+  bar(6);
+  qux(7);
 
   done();
 };
