@@ -86,8 +86,8 @@ exports.testRaw = function(done){
 
   var foo = ada.property(500, function(f){ return f * 10; }, function(f){ return f / 2; });
 
-  assert.equal(foo(), 2500);
-  assert.equal(foo.raw(), 250);
+  assert.equal(foo(), 5000);
+  assert.equal(foo.raw(), 500);
 
   foo(10);
   assert.equal(foo(), 50);
@@ -95,7 +95,7 @@ exports.testRaw = function(done){
   foo.raw(10);
   assert.equal(foo(), 100);
 
-  done(); 
+  done();
 
 };
 

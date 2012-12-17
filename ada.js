@@ -291,7 +291,8 @@ var ada = (function(undef, undefined){
       return publish.apply(undef, args);
     };
 
-    rawValue !== value && set(rawValue, { skipPublishing: true });
+    //rawValue !== value && set(rawValue, { skipPublishing: true });
+    value = rawValue;
 
     return proxy;
   }
