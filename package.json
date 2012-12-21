@@ -1,6 +1,6 @@
 {
   "name": "ada",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A lightweight bindings & pubsub and property library for JavaScript",
   "author": "Azer Koculu <azer@kodfabrik.com>",
   "keywords": [

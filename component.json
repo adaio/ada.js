@@ -1,0 +1,14 @@
+{
+  "name": "ada",
+  "repo": "azer/ada",
+  "description": "Lightweight bindings & pubsub and property library",
+  "main": "ada.js",
+  "version": "0.0.6",
+  "keywords": ["bindings", "pubsub", "properties", "oop"],
+  "dependencies": {},
+  "development": {},
+  "license": "MIT",
+  "scripts": [
+    "ada.js"
+  ]
+}

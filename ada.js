@@ -57,10 +57,31 @@ var ada = (function(undef, undefined){
     return fn.apply(undef, args);
   }
 
+  ada.extend        = extend;
   ada.pubsub        = pubsub;
   ada.property      = property;
   ada.subscribeTo   = subscribeTo;
   ada.unsubscribeTo = unsubscribeTo;
+  ada.toString      = function(){
+    return 'ada';
+  };
+
+  /**
+   * Extend given object.
+   *
+   * @param {Object} obj
+   */
+  function extend(obj){
+    if(!obj || !obj.ada) return ada;
+
+    var key;
+
+    for(key in obj.ada){
+      ada[key] = obj.ada[key];
+    }
+
+    return ada;
+  }
 
   /**
    * Determine if given parameter is observable
@@ -291,7 +312,6 @@ var ada = (function(undef, undefined){
       return publish.apply(undef, args);
     };
 
-    //rawValue !== value && set(rawValue, { skipPublishing: true });
     value = rawValue;
 
     return proxy;
