@@ -1,6 +1,6 @@
 {
   "name": "ada",
-  "repo": "azer/ada",
+  "repo": "azer/ada.js",
   "description": "Lightweight bindings & pubsub and property library",
   "main": "ada.js",
   "version": "0.0.6",

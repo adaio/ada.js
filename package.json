@@ -11,7 +11,7 @@
   "main": "./ada",
   "repository": {
     "type": "git",
-    "url": "http://github.com/azer/ada.git"
+    "url": "http://github.com/azer/ada.js.git"
   },
   "devDependencies": {
     "highkick": "1.x",
