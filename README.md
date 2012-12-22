@@ -4,7 +4,7 @@ ada is a lightweight JavaScript library for defining observable properties that 
 * Performance Comparison with Backbone and Ember: http://jsfiddle.net/azer/TaADd/
 * OOP W/ ada: https://gist.github.com/4136102
 
-![](https://dl.dropbox.com/s/8y0008nkrw84whd/sopranos.jpg)
+![](https://dl.dropbox.com/s/q44g09t47h5pfx5/sweet-summer-badge.jpg)
 
 # INSTALL
 
