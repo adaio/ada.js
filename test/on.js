@@ -5,11 +5,10 @@ var highkick = require('highkick'),
 exports.testProperties = function(done){
     var a = ada.property(3),
         b = ada.property(1),
-        c = ada.property(4),
-        onChange = ada.on(a, b, c);
+        c = ada.property(4);
 
   var i = -1;
-  onChange(function(changed){
+  ada.on(a, b, c, function(changed){
     i++;
 
     if(i == 0){

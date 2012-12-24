@@ -118,20 +118,16 @@ var ada = (function(undef, undefined){
   }
 
   /**
-   * Combine given pubsubs in a new pubsub object.
+   * Trigger callback when any of given pubsub objects are fired.
    *
    * @param {AdaPubsub} subscribeTo
-   * @return {AdaPubsub}
+   * @param {Function} callback
    */
-  function on(/* pubsubs... */){
-    var subscribeTo = Array.prototype.slice.call(arguments),
-        pubsub  = ada.pubsub(),
-        fired   = [],
+  function on(/* pubsubs..., callback */){
+    var subscribeTo = Array.prototype.slice.call(arguments, 0, arguments.length - 1),
+        callback    = arguments[arguments.length - 1],
+        fired       = [],
         timer;
-
-    function callback(update){
-      pubsub.publish(update);
-    }
 
     var len = subscribeTo.length;
     (function next(i){
@@ -159,8 +155,6 @@ var ada = (function(undef, undefined){
       next(i+1);
 
     }(0));
-
-    return pubsub;
   }
 
   /**
