@@ -1,6 +1,6 @@
 {
   "name": "ada",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "description": "A lightweight bindings & pubsub and property library for JavaScript",
   "author": "Azer Koculu <azer@kodfabrik.com>",
   "keywords": [
@@ -11,7 +11,7 @@
   "main": "./ada",
   "repository": {
     "type": "git",
-    "url": "http://github.com/azer/ada.js.git"
+    "url": "http://github.com/adaio/ada.js.git"
   },
   "devDependencies": {
     "highkick": "1.x",

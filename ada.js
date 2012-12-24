@@ -58,11 +58,12 @@ var ada = (function(undef, undefined){
   }
 
   ada.extend        = extend;
+  ada.on            = on;
   ada.pubsub        = pubsub;
   ada.property      = property;
   ada.subscribeTo   = subscribeTo;
   ada.unsubscribeTo = unsubscribeTo;
-  ada.toString      = function(){
+  ada.toString      = function toString(){
     return 'ada';
   };
 
@@ -114,6 +115,52 @@ var ada = (function(undef, undefined){
     }
 
     return obj;
+  }
+
+  /**
+   * Combine given pubsubs in a new pubsub object.
+   *
+   * @param {AdaPubsub} subscribeTo
+   * @return {AdaPubsub}
+   */
+  function on(/* pubsubs... */){
+    var subscribeTo = Array.prototype.slice.call(arguments),
+        pubsub  = ada.pubsub(),
+        fired   = [],
+        timer;
+
+    function callback(update){
+      pubsub.publish(update);
+    }
+
+    var len = subscribeTo.length;
+    (function next(i){
+
+      if(i >= len){
+        return;
+      }
+
+      subscribeTo[i].subscribe(function(){
+        var args  = arguments;
+
+        fired.push({ pubsub: subscribeTo[i], params: args });
+
+        if(timer){
+          clearTimeout(timer);
+          timer = undefined;
+        }
+
+        timer = setTimeout(function(){
+          callback(fired);
+          fired = [];
+        }, 0);
+      });
+
+      next(i+1);
+
+    }(0));
+
+    return pubsub;
   }
 
   /**
